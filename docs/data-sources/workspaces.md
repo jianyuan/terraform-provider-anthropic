@@ -22,13 +22,10 @@ List all workspaces in the organization.
 <a id="nestedatt--workspaces"></a>
 ### Nested Schema for `workspaces`
 
-Required:
-
-- `id` (String) ID of the Workspace.
-
 Read-Only:
 
 - `archived_at` (String) RFC 3339 datetime string indicating when the Workspace was archived, or null if the Workspace is not archived.
 - `created_at` (String) RFC 3339 datetime string indicating when the Workspace was created.
 - `display_color` (String) Hex color code representing the Workspace in the Anthropic Console.
+- `id` (String) ID of the Workspace.
 - `name` (String) Name of the Workspace.

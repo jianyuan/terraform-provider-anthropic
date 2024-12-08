@@ -178,6 +178,151 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Workspace"
+  /v1/organizations/workspaces/{workspace_id}/members:
+    get:
+      operationId: listWorkspaceMembers
+      parameters:
+        - name: workspace_id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: limit
+          in: query
+          schema:
+            type: integer
+        - name: before_id
+          in: query
+          schema:
+            type: string
+        - name: after_id
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - data
+                  - has_more
+                  - first_id
+                  - last_id
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/WorkspaceMember"
+                  has_more:
+                    type: boolean
+                  first_id:
+                    type: string
+                    nullable: true
+                  last_id:
+                    type: string
+                    nullable: true
+    post:
+      operationId: createWorkspaceMember
+      parameters:
+        - name: workspace_id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - user_id
+                - workspace_role
+              properties:
+                user_id:
+                  type: string
+                workspace_role:
+                  type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WorkspaceMember"
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /v1/organizations/workspaces/{workspace_id}/members/{user_id}:
+    get:
+      operationId: getWorkspaceMember
+      parameters:
+        - name: workspace_id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WorkspaceMember"
+    post:
+      operationId: updateWorkspaceMember
+      parameters:
+        - name: workspace_id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - workspace_role
+              properties:
+                workspace_role:
+                  type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WorkspaceMember"
+    delete:
+      operationId: deleteWorkspaceMember
+      parameters:
+        - name: workspace_id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WorkspaceMember"
 security:
   - apiKeyAuth: []
   - versionHeader: []
@@ -192,6 +337,21 @@ components:
       in: header
       name: anthropic-version
   schemas:
+    Error:
+      type: object
+      required:
+        - error
+      properties:
+        error:
+          type: object
+          required:
+            - type
+            - message
+          properties:
+            type:
+              type: string
+            message:
+              type: string
     User:
       type: object
       required:
@@ -230,4 +390,17 @@ components:
           type: string
           nullable: true
         display_color:
+          type: string
+    WorkspaceMember:
+      type: object
+      required:
+        - user_id
+        - workspace_id
+        - workspace_role
+      properties:
+        user_id:
+          type: string
+        workspace_id:
+          type: string
+        workspace_role:
           type: string

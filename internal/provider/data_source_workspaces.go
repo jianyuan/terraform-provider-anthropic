@@ -51,7 +51,7 @@ func (d *WorkspacesDataSource) Schema(ctx context.Context, req datasource.Schema
 					Attributes: map[string]schema.Attribute{
 						"id": schema.StringAttribute{
 							MarkdownDescription: "ID of the Workspace.",
-							Required:            true,
+							Computed:            true,
 						},
 						"name": schema.StringAttribute{
 							MarkdownDescription: "Name of the Workspace.",
