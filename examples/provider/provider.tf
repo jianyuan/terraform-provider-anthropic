@@ -1,3 +1,4 @@
+# Configure the Anthropic provider
 provider "anthropic" {
-  # example configuration here
+  api_key = "sk-ant-adminxx-xxxxx-xxxxx-xxxxx-xxxxx"
 }
