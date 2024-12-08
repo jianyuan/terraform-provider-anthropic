@@ -62,6 +62,122 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/User"
+  /v1/organizations/workspaces:
+    get:
+      operationId: listWorkspaces
+      parameters:
+        - name: include_archived
+          in: query
+          schema:
+            type: boolean
+        - name: limit
+          in: query
+          schema:
+            type: integer
+        - name: before_id
+          in: query
+          schema:
+            type: string
+        - name: after_id
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - data
+                  - has_more
+                  - first_id
+                  - last_id
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Workspace"
+                  has_more:
+                    type: boolean
+                  first_id:
+                    type: string
+                    nullable: true
+                  last_id:
+                    type: string
+                    nullable: true
+    post:
+      operationId: createWorkspace
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+              properties:
+                name:
+                  type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Workspace"
+  /v1/organizations/workspaces/{workspace_id}:
+    get:
+      operationId: getWorkspace
+      parameters:
+        - name: workspace_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Workspace"
+    post:
+      operationId: updateWorkspace
+      parameters:
+        - name: workspace_id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+              properties:
+                name:
+                  type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Workspace"
+  /v1/organizations/workspaces/{workspace_id}/archive:
+    post:
+      operationId: archiveWorkspace
+      parameters:
+        - name: workspace_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Workspace"
 security:
   - apiKeyAuth: []
   - versionHeader: []
@@ -94,4 +210,24 @@ components:
         role:
           type: string
         added_at:
+          type: string
+    Workspace:
+      type: object
+      required:
+        - id
+        - name
+        - created_at
+        - archived_at
+        - display_color
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        created_at:
+          type: string
+        archived_at:
+          type: string
+          nullable: true
+        display_color:
           type: string
