@@ -89,6 +89,8 @@ func (p *AnthropicProvider) Configure(ctx context.Context, req provider.Configur
 	}
 
 	retryClient := retryablehttp.NewClient()
+	retryClient.ErrorHandler = retryablehttp.PassthroughErrorHandler
+	retryClient.Logger = nil
 	retryClient.RetryMax = 10
 
 	client, err := apiclient.NewClientWithResponses(
