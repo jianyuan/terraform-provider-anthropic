@@ -3,12 +3,20 @@
 page_title: "anthropic Provider"
 subcategory: ""
 description: |-
-  
+  The Anthropic provider is used to interact with the Anthropic service.
+  If you find this provider useful, please consider supporting me through GitHub Sponsorship or Ko-Fi to help with its development.
+  Github-sponsors https://github.com/sponsors/jianyuan
+  Ko-Fi https://ko-fi.com/L3L71DQEL
 ---
 
 # anthropic Provider
 
+The Anthropic provider is used to interact with the Anthropic service.
 
+If you find this provider useful, please consider supporting me through GitHub Sponsorship or Ko-Fi to help with its development.
+
+[![Github-sponsors](https://img.shields.io/badge/sponsor-30363D?style=for-the-badge&logo=GitHub-Sponsors&logoColor=#EA4AAA)](https://github.com/sponsors/jianyuan)
+[![Ko-Fi](https://img.shields.io/badge/Ko--fi-F16061?style=for-the-badge&logo=ko-fi&logoColor=white)](https://ko-fi.com/L3L71DQEL)
 
 ## Example Usage
 
