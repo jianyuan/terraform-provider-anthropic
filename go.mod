@@ -1,6 +1,6 @@
 module github.com/jianyuan/terraform-provider-anthropic
 
-go 1.23.4
+go 1.23.5
 
 require (
 	github.com/hashicorp/go-retryablehttp v0.7.7
