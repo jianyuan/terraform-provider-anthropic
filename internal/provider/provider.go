@@ -114,6 +114,7 @@ func (p *AnthropicProvider) Configure(ctx context.Context, req provider.Configur
 
 func (p *AnthropicProvider) Resources(ctx context.Context) []func() resource.Resource {
 	return []func() resource.Resource{
+		NewOrganizationInviteResource,
 		NewWorkspaceMemberResource,
 		NewWorkspaceResource,
 	}
@@ -121,6 +122,7 @@ func (p *AnthropicProvider) Resources(ctx context.Context) []func() resource.Res
 
 func (p *AnthropicProvider) DataSources(ctx context.Context) []func() datasource.DataSource {
 	return []func() datasource.DataSource{
+		NewOrganizationInvitesDataSource,
 		NewUserDataSource,
 		NewUsersDataSource,
 		NewWorkspaceDataSource,
