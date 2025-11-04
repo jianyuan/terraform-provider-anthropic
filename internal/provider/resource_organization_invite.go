@@ -50,10 +50,10 @@ func (r *OrganizationInviteResource) Schema(ctx context.Context, req resource.Sc
 				},
 			},
 			"role": schema.StringAttribute{
-				MarkdownDescription: "Role to assign to the invited user. Must be one of `user` or `developer`.",
+				MarkdownDescription: "Role to assign to the invited user. Must be one of `user`, `developer`, `billing`, `admin`, or `claude_code_user`.",
 				Required:            true,
 				Validators: []validator.String{
-					stringvalidator.OneOf("user", "developer"),
+					stringvalidator.OneOf("user", "developer", "billing", "admin", "claude_code_user"),
 				},
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),
@@ -127,11 +127,14 @@ func (r *OrganizationInviteResource) Read(ctx context.Context, req resource.Read
 		return
 	}
 
-	// Note: The API doesn't provide a GET endpoint for individual invites
-	// We need to list all invites and find the matching one
-	httpResp, err := r.client.ListInvitesWithResponse(ctx, &apiclient.ListInvitesParams{})
+	httpResp, err := r.client.GetInviteWithResponse(ctx, data.Id.ValueString())
 	if err != nil {
 		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to read invite, got error: %s", err))
+		return
+	}
+
+	if httpResp.StatusCode() == http.StatusNotFound {
+		resp.State.RemoveResource(ctx)
 		return
 	}
 
@@ -145,22 +148,7 @@ func (r *OrganizationInviteResource) Read(ctx context.Context, req resource.Read
 		return
 	}
 
-	// Find the invite by ID
-	inviteId := data.Id.ValueString()
-	var foundInvite *apiclient.Invite
-	for _, invite := range httpResp.JSON200.Data {
-		if invite.Id == inviteId {
-			foundInvite = &invite
-			break
-		}
-	}
-
-	if foundInvite == nil {
-		resp.State.RemoveResource(ctx)
-		return
-	}
-
-	if err := data.Fill(*foundInvite); err != nil {
+	if err := data.Fill(*httpResp.JSON200); err != nil {
 		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to fill data: %s", err))
 		return
 	}

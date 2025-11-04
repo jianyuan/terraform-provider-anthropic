@@ -124,6 +124,20 @@ paths:
               schema:
                 $ref: "#/components/schemas/Invite"
   /v1/organizations/invites/{invite_id}:
+    get:
+      operationId: getInvite
+      parameters:
+        - name: invite_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Invite"
     delete:
       operationId: deleteInvite
       parameters:
