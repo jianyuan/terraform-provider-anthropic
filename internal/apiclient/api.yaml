@@ -62,6 +62,82 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/User"
+  /v1/organizations/invites:
+    get:
+      operationId: listInvites
+      parameters:
+        - name: limit
+          in: query
+          schema:
+            type: integer
+        - name: before_id
+          in: query
+          schema:
+            type: string
+        - name: after_id
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - data
+                  - has_more
+                  - first_id
+                  - last_id
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Invite"
+                  has_more:
+                    type: boolean
+                  first_id:
+                    type: string
+                    nullable: true
+                  last_id:
+                    type: string
+                    nullable: true
+    post:
+      operationId: createInvite
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - role
+              properties:
+                email:
+                  type: string
+                role:
+                  type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Invite"
+  /v1/organizations/invites/{invite_id}:
+    delete:
+      operationId: deleteInvite
+      parameters:
+        - name: invite_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Invite"
   /v1/organizations/workspaces:
     get:
       operationId: listWorkspaces
@@ -352,6 +428,28 @@ components:
               type: string
             message:
               type: string
+    Invite:
+      type: object
+      required:
+        - id
+        - email
+        - role
+        - status
+        - created_at
+        - expires_at
+      properties:
+        id:
+          type: string
+        email:
+          type: string
+        role:
+          type: string
+        status:
+          type: string
+        created_at:
+          type: string
+        expires_at:
+          type: string
     User:
       type: object
       required:
