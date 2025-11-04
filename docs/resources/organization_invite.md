@@ -13,13 +13,11 @@ Organization invite resource. Manages invitations to join an organization.
 ## Example Usage
 
 ```terraform
-# Invite a developer
 resource "anthropic_organization_invite" "developer" {
   email = "developer@example.com"
   role  = "developer"
 }
 
-# Invite a user
 resource "anthropic_organization_invite" "user" {
   email = "user@example.com"
   role  = "user"
@@ -36,9 +34,9 @@ resource "anthropic_organization_invite" "user" {
 
 ### Read-Only
 
-- `id` (String) Unique identifier for the invite.
 - `created_at` (String) Timestamp when the invite was created.
 - `expires_at` (String) Timestamp when the invite expires.
+- `id` (String) Unique identifier for the invite.
 - `status` (String) Current status of the invite (e.g., pending, accepted, expired).
 
 ## Import
@@ -46,9 +44,8 @@ resource "anthropic_organization_invite" "user" {
 Import is supported using the following syntax:
 
 ```shell
-# Import an existing organization invite by ID
-terraform import anthropic_organization_invite.developer invite_xxxxx
+#!/bin/bash
 
-# Example
-terraform import anthropic_organization_invite.developer invite_123abc456def
+# Import an existing organization invite by ID
+terraform import anthropic_organization_invite.developer invite-123abc456def
 ```

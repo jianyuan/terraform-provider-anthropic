@@ -13,7 +13,6 @@ List all pending invites in the Organization.
 ## Example Usage
 
 ```terraform
-# List all pending invites
 data "anthropic_organization_invites" "all" {}
 
 output "pending_invites" {
@@ -39,9 +38,9 @@ output "invite_count" {
 
 Read-Only:
 
-- `id` (String) Unique identifier for the invite.
+- `created_at` (String) RFC 3339 datetime string indicating when the invite was created.
 - `email` (String) Email address of the person being invited.
+- `expires_at` (String) RFC 3339 datetime string indicating when the invite expires.
+- `id` (String) Unique identifier for the invite.
 - `role` (String) Role to assign to the invited user.
 - `status` (String) Current status of the invite (e.g., pending, accepted, expired).
-- `created_at` (String) RFC 3339 datetime string indicating when the invite was created.
-- `expires_at` (String) RFC 3339 datetime string indicating when the invite expires.
