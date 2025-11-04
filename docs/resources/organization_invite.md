@@ -30,7 +30,7 @@ resource "anthropic_organization_invite" "user" {
 ### Required
 
 - `email` (String) Email address of the person being invited.
-- `role` (String) Role to assign to the invited user. Must be one of `user` or `developer`.
+- `role` (String) Role to assign to the invited user. Must be one of `user`, `developer`, `billing`, `admin`, or `claude_code_user`.
 
 ### Read-Only
 
