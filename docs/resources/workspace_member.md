@@ -42,6 +42,8 @@ resource "anthropic_workspace_member" "example" {
 
 Import is supported using the following syntax:
 
+The [`terraform import` command](https://developer.hashicorp.com/terraform/cli/commands/import) can be used, for example:
+
 ```shell
 # Import an existing workspace member
 terraform import anthropic_workspace_member.example workspace_id/user_id
