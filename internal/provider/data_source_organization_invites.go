@@ -6,7 +6,6 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
-	"github.com/jianyuan/go-utils/ptr"
 	"github.com/jianyuan/terraform-provider-anthropic/internal/apiclient"
 )
 
@@ -104,7 +103,7 @@ func (d *OrganizationInvitesDataSource) Read(ctx context.Context, req datasource
 
 	var invites []apiclient.Invite
 	params := &apiclient.ListInvitesParams{
-		Limit: ptr.Ptr(100),
+		Limit: new(100),
 	}
 
 	for {

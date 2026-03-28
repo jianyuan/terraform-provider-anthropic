@@ -12,7 +12,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/knownvalue"
 	"github.com/hashicorp/terraform-plugin-testing/statecheck"
 	"github.com/hashicorp/terraform-plugin-testing/tfjsonpath"
-	"github.com/jianyuan/go-utils/ptr"
 	"github.com/jianyuan/terraform-provider-anthropic/internal/acctest"
 	"github.com/jianyuan/terraform-provider-anthropic/internal/apiclient"
 )
@@ -24,7 +23,7 @@ func init() {
 			ctx := context.Background()
 
 			params := &apiclient.ListWorkspacesParams{
-				Limit: ptr.Ptr(100),
+				Limit: new(100),
 			}
 
 			for {
