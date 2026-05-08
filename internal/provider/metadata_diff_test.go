@@ -1,7 +1,6 @@
 package provider
 
 import (
-	"context"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -16,7 +15,7 @@ import (
 // metadataDiff now always returns a non-nil pointer so the caller can send
 // `metadata: {}` explicitly.
 func TestMetadataDiff(t *testing.T) {
-	ctx := context.Background()
+	ctx := t.Context()
 
 	mustMap := func(t *testing.T, m map[string]string) types.Map {
 		t.Helper()

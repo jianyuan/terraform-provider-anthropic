@@ -34,7 +34,7 @@ func vaultDeleteRespWithStatus(code int, body string) *apiclient.DeleteVaultResp
 func TestDeleteVault(t *testing.T) {
 	t.Run("200 OK", func(t *testing.T) {
 		f := &fakeVaultDeleter{resp: vaultDeleteRespWithStatus(http.StatusOK, "")}
-		if err := deleteVault(context.Background(), f, "vlt_01"); err != nil {
+		if err := deleteVault(t.Context(), f, "vlt_01"); err != nil {
 			t.Fatalf("unexpected error: %v", err)
 		}
 		if f.calls != 1 {
@@ -44,14 +44,14 @@ func TestDeleteVault(t *testing.T) {
 
 	t.Run("404 Not Found is benign", func(t *testing.T) {
 		f := &fakeVaultDeleter{resp: vaultDeleteRespWithStatus(http.StatusNotFound, "")}
-		if err := deleteVault(context.Background(), f, "vlt_01"); err != nil {
+		if err := deleteVault(t.Context(), f, "vlt_01"); err != nil {
 			t.Fatalf("unexpected error: %v", err)
 		}
 	})
 
 	t.Run("500 Internal returns error", func(t *testing.T) {
 		f := &fakeVaultDeleter{resp: vaultDeleteRespWithStatus(http.StatusInternalServerError, "transient")}
-		err := deleteVault(context.Background(), f, "vlt_01")
+		err := deleteVault(t.Context(), f, "vlt_01")
 		if err == nil {
 			t.Fatal("expected error on 500, got nil")
 		}
@@ -62,7 +62,7 @@ func TestDeleteVault(t *testing.T) {
 
 	t.Run("403 Forbidden returns error", func(t *testing.T) {
 		f := &fakeVaultDeleter{resp: vaultDeleteRespWithStatus(http.StatusForbidden, "denied")}
-		err := deleteVault(context.Background(), f, "vlt_01")
+		err := deleteVault(t.Context(), f, "vlt_01")
 		if err == nil {
 			t.Fatal("expected error on 403, got nil")
 		}

@@ -43,6 +43,10 @@ resource "anthropic_agent" "coder" {
       type        = "custom"
       name        = "lookup_ticket"
       description = "Fetch the title and description of a Linear ticket by identifier."
+      # input_schema is a JSON-encoded JSON Schema. Use jsonencode(...) so the
+      # provider can semantically compare the value across refreshes; nesting
+      # this attribute inside a list is a Terraform Plugin Framework
+      # constraint that prevents using a native-HCL DynamicAttribute here.
       input_schema = jsonencode({
         type = "object"
         properties = {

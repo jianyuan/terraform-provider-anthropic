@@ -1,22 +1,24 @@
 package provider
 
 import (
-	"context"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-framework-jsontypes/jsontypes"
 	"github.com/jianyuan/terraform-provider-anthropic/internal/apiclient"
 )
 
-// Regression test for codex round 5 P3: a custom tool's input_schema is now a
-// jsontypes.Normalized so re-marshalling on the API echo doesn't trigger a
-// drift against user-written JSON whose key order or whitespace differs from
-// Go's canonical form.
+// Custom-tool input_schema is a jsontypes.Normalized — semantically-equal
+// JSON (different whitespace, different key order) compares equal so the
+// API echo doesn't drift against user-written heredoc JSON.
 //
-// We exercise StringSemanticEquals with two equivalent JSON strings whose
-// surface form differs.
+// We can't expose this as a native HCL DynamicAttribute because the
+// Terraform Plugin Framework forbids dynamic types nested inside a
+// collection (see https://github.com/hashicorp/terraform-plugin-framework
+// "Dynamic types inside of collections are not currently supported").
+// `tools` is a ListNestedAttribute, so input_schema must remain a string
+// (jsonencode'd) for this layout.
 func TestAgentToolInputSchema_SemanticEquality(t *testing.T) {
-	ctx := context.Background()
+	ctx := t.Context()
 
 	heredocStyle := jsontypes.NewNormalizedValue(`{
   "type": "object",
@@ -39,11 +41,9 @@ func TestAgentToolInputSchema_SemanticEquality(t *testing.T) {
 }
 
 // Round-trip test: Fill produces a Normalized value when the API echoes a
-// custom tool input_schema. The previous implementation produced a
-// types.String, which would cause perpetual diffs against semantically
-// equivalent user input.
+// custom tool input_schema.
 func TestAgentModel_Fill_customToolInputSchemaIsNormalized(t *testing.T) {
-	ctx := context.Background()
+	ctx := t.Context()
 
 	schema := map[string]interface{}{
 		"type": "object",

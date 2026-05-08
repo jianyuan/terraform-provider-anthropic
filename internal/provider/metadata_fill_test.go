@@ -1,7 +1,6 @@
 package provider
 
 import (
-	"context"
 	"testing"
 
 	"github.com/jianyuan/terraform-provider-anthropic/internal/apiclient"
@@ -13,7 +12,7 @@ import (
 // the user from typing `metadata = {}` in config in the first place.
 
 func TestVaultModel_Fill_metadataNilStaysNull(t *testing.T) {
-	ctx := context.Background()
+	ctx := t.Context()
 
 	m := &VaultModel{}
 	if d := m.Fill(ctx, apiclient.Vault{
@@ -33,7 +32,7 @@ func TestVaultModel_Fill_metadataNilStaysNull(t *testing.T) {
 }
 
 func TestVaultModel_Fill_metadataEmptyMapCollapsedToNull(t *testing.T) {
-	ctx := context.Background()
+	ctx := t.Context()
 	empty := map[string]string{}
 
 	m := &VaultModel{}
@@ -54,7 +53,7 @@ func TestVaultModel_Fill_metadataEmptyMapCollapsedToNull(t *testing.T) {
 }
 
 func TestVaultModel_Fill_metadataPopulated(t *testing.T) {
-	ctx := context.Background()
+	ctx := t.Context()
 	m := &VaultModel{}
 	md := map[string]string{"env": "dev"}
 	if d := m.Fill(ctx, apiclient.Vault{
@@ -77,7 +76,7 @@ func TestVaultModel_Fill_metadataPopulated(t *testing.T) {
 }
 
 func TestAgentModel_Fill_metadataNilStaysNull(t *testing.T) {
-	ctx := context.Background()
+	ctx := t.Context()
 
 	m := &AgentModel{}
 	if d := m.Fill(ctx, apiclient.Agent{
@@ -99,7 +98,7 @@ func TestAgentModel_Fill_metadataNilStaysNull(t *testing.T) {
 }
 
 func TestAgentModel_Fill_metadataEmptyMapCollapsedToNull(t *testing.T) {
-	ctx := context.Background()
+	ctx := t.Context()
 	empty := map[string]string{}
 
 	m := &AgentModel{}
@@ -122,7 +121,7 @@ func TestAgentModel_Fill_metadataEmptyMapCollapsedToNull(t *testing.T) {
 }
 
 func TestAgentModel_Fill_metadataPopulated(t *testing.T) {
-	ctx := context.Background()
+	ctx := t.Context()
 	m := &AgentModel{}
 	md := map[string]string{"env": "dev"}
 	if d := m.Fill(ctx, apiclient.Agent{

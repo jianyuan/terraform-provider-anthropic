@@ -1,7 +1,6 @@
 package provider
 
 import (
-	"context"
 	"net/http"
 	"net/url"
 	"testing"
@@ -51,7 +50,7 @@ func TestNewManagedAgentsBetaHeaderEditor(t *testing.T) {
 				URL:    &url.URL{Path: tc.path},
 				Header: http.Header{},
 			}
-			if err := editor(context.Background(), req); err != nil {
+			if err := editor(t.Context(), req); err != nil {
 				t.Fatalf("unexpected error: %v", err)
 			}
 			got := req.Header.Get("anthropic-beta")

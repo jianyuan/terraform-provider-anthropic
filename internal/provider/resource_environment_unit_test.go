@@ -55,7 +55,7 @@ func archiveRespWithStatus(code int, body string) *apiclient.ArchiveEnvironmentR
 func TestDeleteEnvironmentWithFallback(t *testing.T) {
 	t.Run("200 OK no fallback", func(t *testing.T) {
 		f := &fakeEnvironmentDeleter{deleteResp: deleteRespWithStatus(http.StatusOK, "")}
-		if err := deleteEnvironmentWithFallback(context.Background(), f, "env_01"); err != nil {
+		if err := deleteEnvironmentWithFallback(t.Context(), f, "env_01"); err != nil {
 			t.Fatalf("unexpected error: %v", err)
 		}
 		if f.deleteCalls != 1 {
@@ -68,7 +68,7 @@ func TestDeleteEnvironmentWithFallback(t *testing.T) {
 
 	t.Run("404 Not Found no fallback", func(t *testing.T) {
 		f := &fakeEnvironmentDeleter{deleteResp: deleteRespWithStatus(http.StatusNotFound, "")}
-		if err := deleteEnvironmentWithFallback(context.Background(), f, "env_01"); err != nil {
+		if err := deleteEnvironmentWithFallback(t.Context(), f, "env_01"); err != nil {
 			t.Fatalf("unexpected error: %v", err)
 		}
 		if f.archiveCalls != 0 {
@@ -81,7 +81,7 @@ func TestDeleteEnvironmentWithFallback(t *testing.T) {
 			deleteResp:  deleteRespWithStatus(http.StatusConflict, `{"error":"sessions reference this environment"}`),
 			archiveResp: archiveRespWithStatus(http.StatusOK, ""),
 		}
-		if err := deleteEnvironmentWithFallback(context.Background(), f, "env_01"); err != nil {
+		if err := deleteEnvironmentWithFallback(t.Context(), f, "env_01"); err != nil {
 			t.Fatalf("unexpected error: %v", err)
 		}
 		if f.deleteCalls != 1 {
@@ -99,7 +99,7 @@ func TestDeleteEnvironmentWithFallback(t *testing.T) {
 			// we don't call it on 5xx.
 			archiveResp: archiveRespWithStatus(http.StatusOK, ""),
 		}
-		err := deleteEnvironmentWithFallback(context.Background(), f, "env_01")
+		err := deleteEnvironmentWithFallback(t.Context(), f, "env_01")
 		if err == nil {
 			t.Fatal("expected error on 500, got nil")
 		}
@@ -116,7 +116,7 @@ func TestDeleteEnvironmentWithFallback(t *testing.T) {
 			deleteResp:  deleteRespWithStatus(http.StatusForbidden, "permission denied"),
 			archiveResp: archiveRespWithStatus(http.StatusOK, ""),
 		}
-		err := deleteEnvironmentWithFallback(context.Background(), f, "env_01")
+		err := deleteEnvironmentWithFallback(t.Context(), f, "env_01")
 		if err == nil {
 			t.Fatal("expected error on 403, got nil")
 		}
@@ -130,7 +130,7 @@ func TestDeleteEnvironmentWithFallback(t *testing.T) {
 			deleteResp:  deleteRespWithStatus(http.StatusConflict, ""),
 			archiveResp: archiveRespWithStatus(http.StatusInternalServerError, "boom"),
 		}
-		err := deleteEnvironmentWithFallback(context.Background(), f, "env_01")
+		err := deleteEnvironmentWithFallback(t.Context(), f, "env_01")
 		if err == nil {
 			t.Fatal("expected error when archive fails, got nil")
 		}

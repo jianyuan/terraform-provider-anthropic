@@ -1,7 +1,6 @@
 package provider
 
 import (
-	"context"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -16,7 +15,7 @@ import (
 // RequiresReplace, a null-vs-false drift would cause Terraform to replan a
 // replacement on every refresh.
 func TestEnvironmentModel_Fill_networkingFlagsDefaultFalse(t *testing.T) {
-	ctx := context.Background()
+	ctx := t.Context()
 
 	m := &EnvironmentModel{}
 	diags := m.Fill(ctx, apiclient.Environment{
@@ -67,7 +66,7 @@ func TestEnvironmentModel_Fill_networkingFlagsDefaultFalse(t *testing.T) {
 }
 
 func TestEnvironmentModel_Fill_networkingFlagsExplicitTrue(t *testing.T) {
-	ctx := context.Background()
+	ctx := t.Context()
 
 	tr := true
 	m := &EnvironmentModel{}
@@ -111,7 +110,7 @@ func TestEnvironmentModel_Fill_networkingFlagsExplicitTrue(t *testing.T) {
 // the `packages` attribute, and `config` (RequiresReplace) would force a
 // replacement on every refresh.
 func TestEnvironmentModel_Fill_packagesEmptyObjectMirrorsNullLists(t *testing.T) {
-	ctx := context.Background()
+	ctx := t.Context()
 
 	m := &EnvironmentModel{}
 	diags := m.Fill(ctx, apiclient.Environment{
@@ -141,7 +140,7 @@ func TestEnvironmentModel_Fill_packagesEmptyObjectMirrorsNullLists(t *testing.T)
 // When at least one per-manager list is set, the packages object stays
 // populated.
 func TestEnvironmentModel_Fill_packagesWithOneManagerStaysPopulated(t *testing.T) {
-	ctx := context.Background()
+	ctx := t.Context()
 
 	m := &EnvironmentModel{}
 	diags := m.Fill(ctx, apiclient.Environment{
@@ -182,7 +181,7 @@ func TestEnvironmentModel_Fill_packagesWithOneManagerStaysPopulated(t *testing.T
 // users with no packages would suddenly see a populated empty object in
 // state.
 func TestEnvironmentModel_Fill_packagesAbsentStaysNull(t *testing.T) {
-	ctx := context.Background()
+	ctx := t.Context()
 
 	m := &EnvironmentModel{}
 	diags := m.Fill(ctx, apiclient.Environment{
@@ -216,7 +215,7 @@ func TestEnvironmentModel_Fill_packagesAbsentStaysNull(t *testing.T) {
 // `false` regardless of prior state. We verify the model layer here; the
 // schema-level Default behaviour is exercised by the framework itself.
 func TestEnvironmentModel_Fill_explicitFalseRoundTrips(t *testing.T) {
-	ctx := context.Background()
+	ctx := t.Context()
 
 	f := false
 	m := &EnvironmentModel{}
@@ -259,7 +258,7 @@ func TestEnvironmentModel_Fill_explicitFalseRoundTrips(t *testing.T) {
 // API normalises an explicit `[]` to nil; the Anthropic SDK pattern is to
 // echo back the same shape, so we accept that limitation as-is.
 func TestEnvironmentModel_Fill_allowedHostsOmittedStaysNull(t *testing.T) {
-	ctx := context.Background()
+	ctx := t.Context()
 
 	m := &EnvironmentModel{}
 	diags := m.Fill(ctx, apiclient.Environment{
