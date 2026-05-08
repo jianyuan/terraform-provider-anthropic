@@ -413,6 +413,462 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/WorkspaceMember"
+  /v1/agents:
+    get:
+      operationId: listAgents
+      parameters:
+        - name: include_archived
+          in: query
+          schema:
+            type: boolean
+        - name: limit
+          in: query
+          schema:
+            type: integer
+        - name: before_id
+          in: query
+          schema:
+            type: string
+        - name: after_id
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - data
+                  - has_more
+                  - first_id
+                  - last_id
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Agent"
+                  has_more:
+                    type: boolean
+                  first_id:
+                    type: string
+                    nullable: true
+                  last_id:
+                    type: string
+                    nullable: true
+    post:
+      operationId: createAgent
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+                - model
+              properties:
+                name:
+                  type: string
+                model:
+                  $ref: "#/components/schemas/Model"
+                system:
+                  type: string
+                  nullable: true
+                description:
+                  type: string
+                  nullable: true
+                tools:
+                  type: array
+                  nullable: true
+                  items:
+                    $ref: "#/components/schemas/AgentTool"
+                mcp_servers:
+                  type: array
+                  nullable: true
+                  items:
+                    $ref: "#/components/schemas/MCPServer"
+                skills:
+                  type: array
+                  nullable: true
+                  items:
+                    $ref: "#/components/schemas/Skill"
+                multiagent:
+                  nullable: true
+                  allOf:
+                    - $ref: "#/components/schemas/Multiagent"
+                metadata:
+                  type: object
+                  additionalProperties:
+                    type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Agent"
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /v1/agents/{agent_id}:
+    get:
+      operationId: getAgent
+      parameters:
+        - name: agent_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Agent"
+    post:
+      operationId: updateAgent
+      parameters:
+        - name: agent_id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - version
+              properties:
+                version:
+                  type: integer
+                name:
+                  type: string
+                model:
+                  $ref: "#/components/schemas/Model"
+                system:
+                  type: string
+                  nullable: true
+                description:
+                  type: string
+                  nullable: true
+                tools:
+                  type: array
+                  nullable: true
+                  items:
+                    $ref: "#/components/schemas/AgentTool"
+                mcp_servers:
+                  type: array
+                  nullable: true
+                  items:
+                    $ref: "#/components/schemas/MCPServer"
+                skills:
+                  type: array
+                  nullable: true
+                  items:
+                    $ref: "#/components/schemas/Skill"
+                multiagent:
+                  nullable: true
+                  allOf:
+                    - $ref: "#/components/schemas/Multiagent"
+                metadata:
+                  type: object
+                  additionalProperties:
+                    type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Agent"
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /v1/agents/{agent_id}/archive:
+    post:
+      operationId: archiveAgent
+      parameters:
+        - name: agent_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Agent"
+  /v1/environments:
+    get:
+      operationId: listEnvironments
+      parameters:
+        - name: include_archived
+          in: query
+          schema:
+            type: boolean
+        - name: limit
+          in: query
+          schema:
+            type: integer
+        - name: before_id
+          in: query
+          schema:
+            type: string
+        - name: after_id
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - data
+                  - has_more
+                  - first_id
+                  - last_id
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Environment"
+                  has_more:
+                    type: boolean
+                  first_id:
+                    type: string
+                    nullable: true
+                  last_id:
+                    type: string
+                    nullable: true
+    post:
+      operationId: createEnvironment
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+                - config
+              properties:
+                name:
+                  type: string
+                config:
+                  $ref: "#/components/schemas/EnvironmentConfig"
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Environment"
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /v1/environments/{environment_id}:
+    get:
+      operationId: getEnvironment
+      parameters:
+        - name: environment_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Environment"
+    delete:
+      operationId: deleteEnvironment
+      parameters:
+        - name: environment_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Environment"
+        "409":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /v1/environments/{environment_id}/archive:
+    post:
+      operationId: archiveEnvironment
+      parameters:
+        - name: environment_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Environment"
+  /v1/vaults:
+    get:
+      operationId: listVaults
+      parameters:
+        - name: include_archived
+          in: query
+          schema:
+            type: boolean
+        - name: limit
+          in: query
+          schema:
+            type: integer
+        - name: before_id
+          in: query
+          schema:
+            type: string
+        - name: after_id
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - data
+                  - has_more
+                  - first_id
+                  - last_id
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Vault"
+                  has_more:
+                    type: boolean
+                  first_id:
+                    type: string
+                    nullable: true
+                  last_id:
+                    type: string
+                    nullable: true
+    post:
+      operationId: createVault
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - display_name
+              properties:
+                display_name:
+                  type: string
+                metadata:
+                  type: object
+                  additionalProperties:
+                    type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Vault"
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /v1/vaults/{vault_id}:
+    get:
+      operationId: getVault
+      parameters:
+        - name: vault_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Vault"
+    post:
+      operationId: updateVault
+      parameters:
+        - name: vault_id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                display_name:
+                  type: string
+                metadata:
+                  type: object
+                  additionalProperties:
+                    type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Vault"
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    delete:
+      operationId: deleteVault
+      parameters:
+        - name: vault_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Vault"
+  /v1/vaults/{vault_id}/archive:
+    post:
+      operationId: archiveVault
+      parameters:
+        - name: vault_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Vault"
 security:
   - apiKeyAuth: []
   - versionHeader: []
@@ -516,3 +972,263 @@ components:
           type: string
         workspace_role:
           type: string
+    Model:
+      type: object
+      required:
+        - id
+      properties:
+        id:
+          type: string
+        speed:
+          type: string
+        version:
+          type: string
+    PermissionPolicy:
+      type: object
+      required:
+        - type
+      properties:
+        type:
+          type: string
+    ToolConfig:
+      type: object
+      properties:
+        name:
+          type: string
+        enabled:
+          type: boolean
+        permission_policy:
+          $ref: "#/components/schemas/PermissionPolicy"
+    AgentTool:
+      type: object
+      required:
+        - type
+      properties:
+        type:
+          type: string
+        default_config:
+          $ref: "#/components/schemas/ToolConfig"
+        configs:
+          type: array
+          items:
+            $ref: "#/components/schemas/ToolConfig"
+        mcp_server_name:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+        input_schema:
+          type: object
+          additionalProperties: true
+        permission_policy:
+          $ref: "#/components/schemas/PermissionPolicy"
+    MCPServer:
+      type: object
+      required:
+        - type
+        - name
+      properties:
+        type:
+          type: string
+        name:
+          type: string
+        url:
+          type: string
+    Skill:
+      type: object
+      required:
+        - type
+        - skill_id
+      properties:
+        type:
+          type: string
+        skill_id:
+          type: string
+        version:
+          type: string
+    RosterEntry:
+      type: object
+      required:
+        - type
+      properties:
+        type:
+          type: string
+        id:
+          type: string
+        version:
+          type: integer
+    Multiagent:
+      type: object
+      required:
+        - type
+        - agents
+      properties:
+        type:
+          type: string
+        agents:
+          type: array
+          items:
+            $ref: "#/components/schemas/RosterEntry"
+    Agent:
+      type: object
+      required:
+        - id
+        - type
+        - name
+        - model
+        - version
+        - created_at
+        - updated_at
+      properties:
+        id:
+          type: string
+        type:
+          type: string
+        name:
+          type: string
+        model:
+          $ref: "#/components/schemas/Model"
+        system:
+          type: string
+          nullable: true
+        description:
+          type: string
+          nullable: true
+        tools:
+          type: array
+          nullable: true
+          items:
+            $ref: "#/components/schemas/AgentTool"
+        mcp_servers:
+          type: array
+          nullable: true
+          items:
+            $ref: "#/components/schemas/MCPServer"
+        skills:
+          type: array
+          nullable: true
+          items:
+            $ref: "#/components/schemas/Skill"
+        multiagent:
+          nullable: true
+          allOf:
+            - $ref: "#/components/schemas/Multiagent"
+        metadata:
+          type: object
+          additionalProperties:
+            type: string
+        version:
+          type: integer
+        created_at:
+          type: string
+        updated_at:
+          type: string
+        archived_at:
+          type: string
+          nullable: true
+    Networking:
+      type: object
+      required:
+        - type
+      properties:
+        type:
+          type: string
+        allowed_hosts:
+          type: array
+          items:
+            type: string
+        allow_mcp_servers:
+          type: boolean
+        allow_package_managers:
+          type: boolean
+    Packages:
+      type: object
+      properties:
+        apt:
+          type: array
+          items:
+            type: string
+        cargo:
+          type: array
+          items:
+            type: string
+        gem:
+          type: array
+          items:
+            type: string
+        go:
+          type: array
+          items:
+            type: string
+        npm:
+          type: array
+          items:
+            type: string
+        pip:
+          type: array
+          items:
+            type: string
+    EnvironmentConfig:
+      type: object
+      required:
+        - type
+        - networking
+      properties:
+        type:
+          type: string
+        networking:
+          $ref: "#/components/schemas/Networking"
+        packages:
+          $ref: "#/components/schemas/Packages"
+    Environment:
+      type: object
+      required:
+        - id
+        - type
+        - name
+        - config
+        - created_at
+        - updated_at
+      properties:
+        id:
+          type: string
+        type:
+          type: string
+        name:
+          type: string
+        config:
+          $ref: "#/components/schemas/EnvironmentConfig"
+        created_at:
+          type: string
+        updated_at:
+          type: string
+        archived_at:
+          type: string
+          nullable: true
+    Vault:
+      type: object
+      required:
+        - id
+        - type
+        - display_name
+        - created_at
+        - updated_at
+      properties:
+        id:
+          type: string
+        type:
+          type: string
+        display_name:
+          type: string
+        metadata:
+          type: object
+          additionalProperties:
+            type: string
+        created_at:
+          type: string
+        updated_at:
+          type: string
+        archived_at:
+          type: string
+          nullable: true
