@@ -316,7 +316,10 @@ func agentToolsToList(ctx context.Context, tools *[]apiclient.AgentTool) (types.
 
 func mcpServersToList(ctx context.Context, servers *[]apiclient.MCPServer) (types.List, diag.Diagnostics) {
 	listType := types.ObjectType{AttrTypes: mcpServerAttrTypes()}
-	if servers == nil {
+	// API echoes an empty list when no MCP servers are configured; treat
+	// that as null in state so a config that omits `mcp_servers` doesn't
+	// trip "Provider produced inconsistent result after apply".
+	if servers == nil || len(*servers) == 0 {
 		return types.ListNull(listType), nil
 	}
 	var diags diag.Diagnostics
@@ -338,7 +341,8 @@ func mcpServersToList(ctx context.Context, servers *[]apiclient.MCPServer) (type
 
 func skillsToList(ctx context.Context, skills *[]apiclient.Skill) (types.List, diag.Diagnostics) {
 	listType := types.ObjectType{AttrTypes: skillAttrTypes()}
-	if skills == nil {
+	// Same null-vs-empty treatment as mcpServersToList.
+	if skills == nil || len(*skills) == 0 {
 		return types.ListNull(listType), nil
 	}
 	var diags diag.Diagnostics

@@ -110,14 +110,23 @@ func (r *EnvironmentResource) Schema(ctx context.Context, req resource.SchemaReq
 			"created_at": schema.StringAttribute{
 				MarkdownDescription: "RFC 3339 datetime string indicating when the Environment was created.",
 				Computed:            true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"updated_at": schema.StringAttribute{
 				MarkdownDescription: "RFC 3339 datetime string indicating when the Environment was last updated.",
 				Computed:            true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"archived_at": schema.StringAttribute{
 				MarkdownDescription: "RFC 3339 datetime string indicating when the Environment was archived, or null if not archived.",
 				Computed:            true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 		},
 	}

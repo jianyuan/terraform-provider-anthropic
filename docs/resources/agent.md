@@ -130,8 +130,8 @@ Required:
 
 Optional:
 
-- `speed` (String) Model speed mode (`standard` or `fast`). Optional. Removing the attribute clears any pin so the API picks the model's default; the API may echo `standard` either way, which can show as a refresh diff if you don't pin a value.
-- `version` (String) Model version pin. Optional. Same caveat as `speed`: omitting the field returns to API default behaviour but the API may echo a concrete version.
+- `speed` (String) Model speed mode (`standard` or `fast`). Optional+Computed: the API always echoes back a concrete value (typically `standard`), so we mark it Computed to avoid "Provider produced inconsistent result after apply". Once set, removing the line keeps the prior value; assign explicitly to change.
+- `version` (String) Model version pin. Optional+Computed for the same reason as `speed`.
 
 
 <a id="nestedatt--mcp_servers"></a>
@@ -197,7 +197,7 @@ Optional:
 - `input_schema` (String) Custom tool input JSON Schema, encoded as JSON (e.g. via `jsonencode`). Required when `type = "custom"`. Compared semantically; whitespace and key order don't trigger diffs.
 - `mcp_server_name` (String) Name of the declared MCP server. Required when `type = "mcp_toolset"`.
 - `name` (String) Custom tool name. Required when `type = "custom"`.
-- `permission_policy` (Attributes) Tool execution permission policy. (see [below for nested schema](#nestedatt--tools--permission_policy))
+- `permission_policy` (Attributes) Tool execution permission policy. Optional+Computed: omitting it lets the API default fill in (e.g. `always_ask` for MCP, `always_allow` for the agent toolset). To change a policy back to the default, set it explicitly rather than removing the attribute. (see [below for nested schema](#nestedatt--tools--permission_policy))
 
 <a id="nestedatt--tools--configs"></a>
 ### Nested Schema for `tools.configs`
@@ -209,7 +209,7 @@ Required:
 Optional:
 
 - `enabled` (Boolean) Whether the tool is enabled.
-- `permission_policy` (Attributes) Tool execution permission policy. (see [below for nested schema](#nestedatt--tools--configs--permission_policy))
+- `permission_policy` (Attributes) Tool execution permission policy. Optional+Computed: omitting it lets the API default fill in (e.g. `always_ask` for MCP, `always_allow` for the agent toolset). To change a policy back to the default, set it explicitly rather than removing the attribute. (see [below for nested schema](#nestedatt--tools--configs--permission_policy))
 
 <a id="nestedatt--tools--configs--permission_policy"></a>
 ### Nested Schema for `tools.configs.permission_policy`
@@ -227,7 +227,7 @@ Optional:
 
 - `enabled` (Boolean) Whether the tool is enabled.
 - `name` (String) Tool name within the toolset (e.g. `web_fetch`, `bash`). Required when used inside `configs`.
-- `permission_policy` (Attributes) Tool execution permission policy. (see [below for nested schema](#nestedatt--tools--default_config--permission_policy))
+- `permission_policy` (Attributes) Tool execution permission policy. Optional+Computed: omitting it lets the API default fill in (e.g. `always_ask` for MCP, `always_allow` for the agent toolset). To change a policy back to the default, set it explicitly rather than removing the attribute. (see [below for nested schema](#nestedatt--tools--default_config--permission_policy))
 
 <a id="nestedatt--tools--default_config--permission_policy"></a>
 ### Nested Schema for `tools.default_config.permission_policy`

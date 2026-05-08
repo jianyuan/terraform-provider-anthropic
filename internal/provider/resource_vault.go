@@ -76,14 +76,23 @@ func (r *VaultResource) Schema(ctx context.Context, req resource.SchemaRequest, 
 			"created_at": schema.StringAttribute{
 				MarkdownDescription: "RFC 3339 datetime string indicating when the Vault was created.",
 				Computed:            true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"updated_at": schema.StringAttribute{
 				MarkdownDescription: "RFC 3339 datetime string indicating when the Vault was last updated.",
 				Computed:            true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"archived_at": schema.StringAttribute{
 				MarkdownDescription: "RFC 3339 datetime string indicating when the Vault was archived, or null if not archived.",
 				Computed:            true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 		},
 	}

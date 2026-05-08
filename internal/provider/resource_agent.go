@@ -11,7 +11,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/boolplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/listplanmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/objectplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -35,9 +38,20 @@ func (r *AgentResource) Metadata(ctx context.Context, req resource.MetadataReque
 
 func (r *AgentResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	permissionPolicyAttr := func(optional bool) schema.SingleNestedAttribute {
+		// permission_policy is filled in by the API on apply (the docs say
+		// the toolset defaults to always_ask, MCP toolsets to always_ask,
+		// agent_toolset to always_allow), so we must declare it Computed
+		// to avoid a "Provider produced inconsistent result after apply"
+		// error. UseStateForUnknown keeps the prior state on plans where
+		// the user didn't change anything; otherwise the framework would
+		// re-mark the value as "(known after apply)" on every refresh.
 		return schema.SingleNestedAttribute{
-			MarkdownDescription: "Tool execution permission policy.",
+			MarkdownDescription: "Tool execution permission policy. Optional+Computed: omitting it lets the API default fill in (e.g. `always_ask` for MCP, `always_allow` for the agent toolset). To change a policy back to the default, set it explicitly rather than removing the attribute.",
 			Optional:            optional,
+			Computed:            optional,
+			PlanModifiers: []planmodifier.Object{
+				objectplanmodifier.UseStateForUnknown(),
+			},
 			Attributes: map[string]schema.Attribute{
 				"type": schema.StringAttribute{
 					MarkdownDescription: "Permission policy kind, e.g. `always_ask`, `always_allow`, `never`.",
@@ -50,14 +64,26 @@ func (r *AgentResource) Schema(ctx context.Context, req resource.SchemaRequest, 
 	toolConfigAttr := func() schema.SingleNestedAttribute {
 		return schema.SingleNestedAttribute{
 			Optional: true,
+			Computed: true,
+			PlanModifiers: []planmodifier.Object{
+				objectplanmodifier.UseStateForUnknown(),
+			},
 			Attributes: map[string]schema.Attribute{
 				"name": schema.StringAttribute{
 					MarkdownDescription: "Tool name within the toolset (e.g. `web_fetch`, `bash`). Required when used inside `configs`.",
 					Optional:            true,
+					Computed:            true,
+					PlanModifiers: []planmodifier.String{
+						stringplanmodifier.UseStateForUnknown(),
+					},
 				},
 				"enabled": schema.BoolAttribute{
 					MarkdownDescription: "Whether the tool is enabled.",
 					Optional:            true,
+					Computed:            true,
+					PlanModifiers: []planmodifier.Bool{
+						boolplanmodifier.UseStateForUnknown(),
+					},
 				},
 				"permission_policy": permissionPolicyAttr(true),
 			},
@@ -97,12 +123,20 @@ func (r *AgentResource) Schema(ctx context.Context, req resource.SchemaRequest, 
 						Required:            true,
 					},
 					"speed": schema.StringAttribute{
-						MarkdownDescription: "Model speed mode (`standard` or `fast`). Optional. Removing the attribute clears any pin so the API picks the model's default; the API may echo `standard` either way, which can show as a refresh diff if you don't pin a value.",
+						MarkdownDescription: "Model speed mode (`standard` or `fast`). Optional+Computed: the API always echoes back a concrete value (typically `standard`), so we mark it Computed to avoid \"Provider produced inconsistent result after apply\". Once set, removing the line keeps the prior value; assign explicitly to change.",
 						Optional:            true,
+						Computed:            true,
+						PlanModifiers: []planmodifier.String{
+							stringplanmodifier.UseStateForUnknown(),
+						},
 					},
 					"version": schema.StringAttribute{
-						MarkdownDescription: "Model version pin. Optional. Same caveat as `speed`: omitting the field returns to API default behaviour but the API may echo a concrete version.",
+						MarkdownDescription: "Model version pin. Optional+Computed for the same reason as `speed`.",
 						Optional:            true,
+						Computed:            true,
+						PlanModifiers: []planmodifier.String{
+							stringplanmodifier.UseStateForUnknown(),
+						},
 					},
 				},
 			},
@@ -136,6 +170,10 @@ func (r *AgentResource) Schema(ctx context.Context, req resource.SchemaRequest, 
 						"configs": schema.ListNestedAttribute{
 							MarkdownDescription: "Per-tool overrides. Used by `agent_toolset_20260401` and `mcp_toolset`.",
 							Optional:            true,
+							Computed:            true,
+							PlanModifiers: []planmodifier.List{
+								listplanmodifier.UseStateForUnknown(),
+							},
 							NestedObject: schema.NestedAttributeObject{
 								Attributes: map[string]schema.Attribute{
 									"name": schema.StringAttribute{
@@ -145,6 +183,10 @@ func (r *AgentResource) Schema(ctx context.Context, req resource.SchemaRequest, 
 									"enabled": schema.BoolAttribute{
 										MarkdownDescription: "Whether the tool is enabled.",
 										Optional:            true,
+										Computed:            true,
+										PlanModifiers: []planmodifier.Bool{
+											boolplanmodifier.UseStateForUnknown(),
+										},
 									},
 									"permission_policy": permissionPolicyAttr(true),
 								},
@@ -244,14 +286,23 @@ func (r *AgentResource) Schema(ctx context.Context, req resource.SchemaRequest, 
 			"created_at": schema.StringAttribute{
 				MarkdownDescription: "RFC 3339 datetime string indicating when the Agent was created.",
 				Computed:            true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"updated_at": schema.StringAttribute{
 				MarkdownDescription: "RFC 3339 datetime string indicating when the Agent was last updated.",
 				Computed:            true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"archived_at": schema.StringAttribute{
 				MarkdownDescription: "RFC 3339 datetime string indicating when the Agent was archived, or null if not archived.",
 				Computed:            true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 		},
 	}

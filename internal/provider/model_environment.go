@@ -88,13 +88,19 @@ func boolFromPointer(p *bool) types.Bool {
 }
 
 // packagesAllNil reports whether the API's Packages object exists but has
-// no per-manager lists set. We treat that case as "no packages configured"
-// in state so a user who omits the `packages` block doesn't see a phantom
-// `{ apt = null, cargo = null, ... }` object after refresh — which would
-// force a replacement plan because the enclosing `config` is RequiresReplace.
+// no per-manager lists effectively configured. We treat that case as "no
+// packages configured" in state so a user who omits the `packages` block
+// doesn't see a phantom `{ apt = [], cargo = [], ... }` object after
+// refresh — which would force a replacement plan because the enclosing
+// `config` is RequiresReplace.
+//
+// The API echoes back empty *lists* (not nil) for unspecified package
+// managers, so checking `== nil` alone isn't enough; we also treat
+// zero-length slices as effectively absent.
 func packagesAllNil(p *apiclient.Packages) bool {
-	return p.Apt == nil && p.Cargo == nil && p.Gem == nil &&
-		p.Go == nil && p.Npm == nil && p.Pip == nil
+	emptyOrNil := func(s *[]string) bool { return s == nil || len(*s) == 0 }
+	return emptyOrNil(p.Apt) && emptyOrNil(p.Cargo) && emptyOrNil(p.Gem) &&
+		emptyOrNil(p.Go) && emptyOrNil(p.Npm) && emptyOrNil(p.Pip)
 }
 
 func listToStringSlice(ctx context.Context, l types.List) (*[]string, diag.Diagnostics) {
@@ -225,13 +231,20 @@ func environmentConfigToAPI(ctx context.Context, cfg types.Object) (apiclient.En
 	} else {
 		out.Networking.AllowedHosts = hosts
 	}
-	if !n.AllowMcpServers.IsNull() && !n.AllowMcpServers.IsUnknown() {
-		v := n.AllowMcpServers.ValueBool()
-		out.Networking.AllowMcpServers = &v
-	}
-	if !n.AllowPackageManagers.IsNull() && !n.AllowPackageManagers.IsUnknown() {
-		v := n.AllowPackageManagers.ValueBool()
-		out.Networking.AllowPackageManagers = &v
+	// allow_mcp_servers / allow_package_managers are only valid in the API
+	// when networking.type == "limited". Sending them with type=unrestricted
+	// is rejected with a 400 even when the value is false. The schema's
+	// Default(false) populates the plan with false in either case, so we
+	// must guard the body assembly here.
+	if n.Type.ValueString() == "limited" {
+		if !n.AllowMcpServers.IsNull() && !n.AllowMcpServers.IsUnknown() {
+			v := n.AllowMcpServers.ValueBool()
+			out.Networking.AllowMcpServers = &v
+		}
+		if !n.AllowPackageManagers.IsNull() && !n.AllowPackageManagers.IsUnknown() {
+			v := n.AllowPackageManagers.ValueBool()
+			out.Networking.AllowPackageManagers = &v
+		}
 	}
 
 	if !c.Packages.IsNull() && !c.Packages.IsUnknown() {
