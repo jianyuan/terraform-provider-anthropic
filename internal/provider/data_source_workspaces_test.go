@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"testing"
 
+	sdkacctest "github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/knownvalue"
 	"github.com/hashicorp/terraform-plugin-testing/statecheck"
@@ -13,7 +14,7 @@ import (
 
 func TestAccWorkspacesDataSource(t *testing.T) {
 	rn := "data.anthropic_workspaces.test"
-	workspaceName := acctest.RandomWithPrefix("tf-workspace")
+	workspaceName := sdkacctest.RandomWithPrefix("tf-workspace")
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { acctest.PreCheck(t) },
