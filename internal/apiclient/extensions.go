@@ -64,6 +64,38 @@ func (a *Agent) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+// UnmarshalJSON tolerates `version` arriving as either a JSON string or a JSON
+// number in a deployment's embedded agent reference — same inconsistency as
+// Agent.version above (managed-agents-2026-04-01 returns it as a number).
+func (a *DeploymentAgentRef) UnmarshalJSON(data []byte) error {
+	type raw DeploymentAgentRef
+	var probe map[string]json.RawMessage
+	if err := json.Unmarshal(data, &probe); err != nil {
+		return err
+	}
+	versionRaw, hadVersion := probe["version"]
+	if hadVersion {
+		delete(probe, "version")
+	}
+	cleaned, err := json.Marshal(probe)
+	if err != nil {
+		return err
+	}
+	var r raw
+	if err := json.Unmarshal(cleaned, &r); err != nil {
+		return err
+	}
+	*a = DeploymentAgentRef(r)
+	if hadVersion {
+		v, err := stringFromStringOrNumber(versionRaw)
+		if err != nil {
+			return err
+		}
+		a.Version = v
+	}
+	return nil
+}
+
 func stringFromStringOrNumber(data json.RawMessage) (string, error) {
 	trimmed := bytes.TrimSpace(data)
 	if len(trimmed) == 0 {

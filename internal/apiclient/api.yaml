@@ -421,8 +421,9 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Agent"
-    delete:
-      operationId: deleteAgent
+  /v1/agents/{agent_id}/archive:
+    post:
+      operationId: archiveAgent
       parameters:
         - name: agent_id
           in: path
@@ -434,7 +435,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/DeletedResource"
+                $ref: "#/components/schemas/Agent"
   /v1/environments:
     get:
       operationId: listEnvironments
@@ -524,6 +525,96 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/DeletedResource"
+  /v1/deployments:
+    get:
+      operationId: listDeployments
+      parameters:
+        - name: limit
+          in: query
+          schema:
+            type: integer
+        - name: page
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - data
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Deployment"
+                  next_page:
+                    type: string
+                    nullable: true
+    post:
+      operationId: createDeployment
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateDeploymentRequest"
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Deployment"
+  /v1/deployments/{deployment_id}:
+    get:
+      operationId: getDeployment
+      parameters:
+        - name: deployment_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Deployment"
+    post:
+      operationId: updateDeployment
+      parameters:
+        - name: deployment_id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateDeploymentRequest"
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Deployment"
+  /v1/deployments/{deployment_id}/archive:
+    post:
+      operationId: archiveDeployment
+      parameters:
+        - name: deployment_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Deployment"
   # ==================== End Managed Agents API ====================
   /v1/organizations/workspaces/{workspace_id}/members/{user_id}:
     get:
@@ -1019,3 +1110,166 @@ components:
           type: string
         type:
           type: string
+    DeploymentAgentRef:
+      type: object
+      required:
+        - id
+        - type
+        - version
+      properties:
+        id:
+          type: string
+        type:
+          type: string
+        version:
+          type: string
+    DeploymentSchedule:
+      type: object
+      required:
+        - type
+        - expression
+      properties:
+        type:
+          type: string
+        expression:
+          type: string
+        timezone:
+          type: string
+        last_run_at:
+          type: string
+          nullable: true
+        upcoming_runs_at:
+          type: array
+          items:
+            type: string
+    DeploymentScheduleInput:
+      type: object
+      required:
+        - type
+        - expression
+      properties:
+        type:
+          type: string
+        expression:
+          type: string
+        timezone:
+          type: string
+    Deployment:
+      type: object
+      required:
+        - id
+        - type
+        - name
+        - environment_id
+      properties:
+        id:
+          type: string
+        type:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+          nullable: true
+        agent:
+          $ref: "#/components/schemas/DeploymentAgentRef"
+        environment_id:
+          type: string
+        initial_events:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+        resources:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+        metadata:
+          type: object
+          additionalProperties:
+            type: string
+        schedule:
+          $ref: "#/components/schemas/DeploymentSchedule"
+          nullable: true
+        vault_ids:
+          type: array
+          items:
+            type: string
+        status:
+          type: string
+        paused_reason:
+          type: object
+          nullable: true
+          additionalProperties: true
+        archived_at:
+          type: string
+          nullable: true
+        created_at:
+          type: string
+        updated_at:
+          type: string
+    CreateDeploymentRequest:
+      type: object
+      required:
+        - name
+        - environment_id
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        agent: {}
+        environment_id:
+          type: string
+        initial_events:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+        resources:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+        metadata:
+          type: object
+          additionalProperties:
+            type: string
+        schedule:
+          $ref: "#/components/schemas/DeploymentScheduleInput"
+        vault_ids:
+          type: array
+          items:
+            type: string
+    UpdateDeploymentRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        agent: {}
+        environment_id:
+          type: string
+        initial_events:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+        resources:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+        metadata:
+          type: object
+          additionalProperties:
+            type: string
+        schedule:
+          $ref: "#/components/schemas/DeploymentScheduleInput"
+          nullable: true
+        vault_ids:
+          type: array
+          items:
+            type: string

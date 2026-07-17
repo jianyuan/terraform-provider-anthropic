@@ -24,6 +24,7 @@ type AgentModel struct {
 type AgentToolModel struct {
 	Type          types.String                 `tfsdk:"type"`
 	DefaultConfig *AgentToolDefaultConfigModel `tfsdk:"default_config"`
+	Configs       []AgentToolConfigModel       `tfsdk:"configs"`
 }
 
 type AgentToolDefaultConfigModel struct {
@@ -35,11 +36,18 @@ type AgentToolPermissionPolicyModel struct {
 	Type types.String `tfsdk:"type"`
 }
 
+// AgentToolConfigModel is a per-tool override within a toolset (the allowlist entry).
+type AgentToolConfigModel struct {
+	Name    types.String `tfsdk:"name"`
+	Enabled types.Bool   `tfsdk:"enabled"`
+}
+
 type McpServerModel struct {
 	Name          types.String                 `tfsdk:"name"`
 	Type          types.String                 `tfsdk:"type"`
 	Url           types.String                 `tfsdk:"url"`
 	DefaultConfig *AgentToolDefaultConfigModel `tfsdk:"default_config"`
+	Configs       []AgentToolConfigModel       `tfsdk:"configs"`
 }
 
 type SkillModel struct {
@@ -83,7 +91,8 @@ func (m *AgentModel) Fill(a apiclient.Agent) error {
 				continue
 			}
 			tm := AgentToolModel{
-				Type: types.StringValue(t.Type),
+				Type:    types.StringValue(t.Type),
+				Configs: parseToolConfigs(t.Configs),
 			}
 			if t.DefaultConfig != nil {
 				dc := &AgentToolDefaultConfigModel{
@@ -109,20 +118,26 @@ func (m *AgentModel) Fill(a apiclient.Agent) error {
 	// Index mcp_toolset default_configs by server name so we can surface
 	// them on the corresponding mcp_servers entry.
 	mcpToolsetCfg := map[string]*AgentToolDefaultConfigModel{}
+	mcpToolsetConfigs := map[string][]AgentToolConfigModel{}
 	if a.Tools != nil {
 		for _, t := range *a.Tools {
-			if t.Type != "mcp_toolset" || t.McpServerName == nil || t.DefaultConfig == nil {
+			if t.Type != "mcp_toolset" || t.McpServerName == nil {
 				continue
 			}
-			dc := &AgentToolDefaultConfigModel{
-				Enabled: types.BoolPointerValue(t.DefaultConfig.Enabled),
-			}
-			if t.DefaultConfig.PermissionPolicy != nil {
-				dc.PermissionPolicy = &AgentToolPermissionPolicyModel{
-					Type: types.StringValue(t.DefaultConfig.PermissionPolicy.Type),
+			if t.DefaultConfig != nil {
+				dc := &AgentToolDefaultConfigModel{
+					Enabled: types.BoolPointerValue(t.DefaultConfig.Enabled),
 				}
+				if t.DefaultConfig.PermissionPolicy != nil {
+					dc.PermissionPolicy = &AgentToolPermissionPolicyModel{
+						Type: types.StringValue(t.DefaultConfig.PermissionPolicy.Type),
+					}
+				}
+				mcpToolsetCfg[*t.McpServerName] = dc
 			}
-			mcpToolsetCfg[*t.McpServerName] = dc
+			if cfgs := parseToolConfigs(t.Configs); cfgs != nil {
+				mcpToolsetConfigs[*t.McpServerName] = cfgs
+			}
 		}
 	}
 
@@ -134,6 +149,7 @@ func (m *AgentModel) Fill(a apiclient.Agent) error {
 				Type:          types.StringValue(s.Type),
 				Url:           types.StringValue(s.Url),
 				DefaultConfig: mcpToolsetCfg[s.Name],
+				Configs:       mcpToolsetConfigs[s.Name],
 			}
 		}
 		m.McpServers = servers

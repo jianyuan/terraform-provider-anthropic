@@ -40,7 +40,7 @@ func (p *AnthropicProvider) Metadata(ctx context.Context, req provider.MetadataR
 
 func (p *AnthropicProvider) Schema(ctx context.Context, req provider.SchemaRequest, resp *provider.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "The Anthropic provider manages Anthropic resources including workspaces, organization members, and Managed Agents (agents, environments).",
+		MarkdownDescription: "The Anthropic provider manages Anthropic resources including workspaces, organization members, and Managed Agents (agents, environments, deployments).",
 		Attributes: map[string]schema.Attribute{
 			"base_url": schema.StringAttribute{
 				MarkdownDescription: "API endpoint for the Anthropic service. Defaults to `https://api.anthropic.com`. It can be sourced from the `ANTHROPIC_BASE_URL` environment variable.",
@@ -129,6 +129,7 @@ func (p *AnthropicProvider) Configure(ctx context.Context, req provider.Configur
 func (p *AnthropicProvider) Resources(ctx context.Context) []func() resource.Resource {
 	return []func() resource.Resource{
 		NewAgentResource,
+		NewDeploymentResource,
 		NewEnvironmentResource,
 		NewOrganizationInviteResource,
 		NewSkillResource,

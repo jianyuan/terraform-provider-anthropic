@@ -14,6 +14,15 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
+// withManagedAgentsBeta overrides the anthropic-beta header for /v1/agents requests.
+// The provider-level editor sets agent-api-2026-03-01, but the agent_toolset_20260401
+// tool type and the per-tool `configs` allowlist require managed-agents-2026-04-01.
+// (extensions.go already tolerates the version field being a number under this beta.)
+func withManagedAgentsBeta(_ context.Context, req *http.Request) error {
+	req.Header.Set("anthropic-beta", "managed-agents-2026-04-01")
+	return nil
+}
+
 func NewAgentResource() resource.Resource {
 	return &AgentResource{}
 }
@@ -80,6 +89,7 @@ func (r *AgentResource) Schema(ctx context.Context, req resource.SchemaRequest, 
 						},
 					},
 					Blocks: map[string]schema.Block{
+						"configs": agentToolConfigsBlock(),
 						"default_config": schema.SingleNestedBlock{
 							MarkdownDescription: "Default configuration applied to this tool when instantiated in a session.",
 							Attributes: map[string]schema.Attribute{
@@ -121,6 +131,7 @@ func (r *AgentResource) Schema(ctx context.Context, req resource.SchemaRequest, 
 						},
 					},
 					Blocks: map[string]schema.Block{
+						"configs": agentToolConfigsBlock(),
 						"default_config": schema.SingleNestedBlock{
 							MarkdownDescription: "Default configuration applied to the auto-generated `mcp_toolset` entry for this server.",
 							Attributes: map[string]schema.Attribute{
@@ -161,6 +172,27 @@ func (r *AgentResource) Schema(ctx context.Context, req resource.SchemaRequest, 
 							Required:            true,
 						},
 					},
+				},
+			},
+		},
+	}
+}
+
+// agentToolConfigsBlock is the per-tool override list shared by the `tools` and
+// `mcp_servers` blocks. Combined with `default_config.enabled = false` it expresses a
+// tool allowlist: disable everything by default, then enable only the named tools.
+func agentToolConfigsBlock() schema.ListNestedBlock {
+	return schema.ListNestedBlock{
+		MarkdownDescription: "Per-tool overrides within this toolset. Set `default_config.enabled = false` and enable only the tools you want to allowlist.",
+		NestedObject: schema.NestedBlockObject{
+			Attributes: map[string]schema.Attribute{
+				"name": schema.StringAttribute{
+					MarkdownDescription: "Bare tool name as reported by the server (e.g. `list_commits`).",
+					Required:            true,
+				},
+				"enabled": schema.BoolAttribute{
+					MarkdownDescription: "Whether this specific tool is enabled.",
+					Optional:            true,
 				},
 			},
 		},
@@ -226,7 +258,7 @@ func (r *AgentResource) Create(ctx context.Context, req resource.CreateRequest, 
 		body.Skills = &skills
 	}
 
-	httpResp, err := r.client.CreateAgentWithResponse(ctx, body)
+	httpResp, err := r.client.CreateAgentWithResponse(ctx, body, withManagedAgentsBeta)
 	if err != nil {
 		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to create agent, got error: %s", err))
 		return
@@ -258,7 +290,7 @@ func (r *AgentResource) Read(ctx context.Context, req resource.ReadRequest, resp
 		return
 	}
 
-	httpResp, err := r.client.GetAgentWithResponse(ctx, data.Id.ValueString())
+	httpResp, err := r.client.GetAgentWithResponse(ctx, data.Id.ValueString(), withManagedAgentsBeta)
 	if err != nil {
 		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to read agent, got error: %s", err))
 		return
@@ -349,7 +381,7 @@ func (r *AgentResource) Update(ctx context.Context, req resource.UpdateRequest, 
 	}
 	body.Skills = &skills
 
-	httpResp, err := r.client.UpdateAgentWithResponse(ctx, state.Id.ValueString(), body)
+	httpResp, err := r.client.UpdateAgentWithResponse(ctx, state.Id.ValueString(), body, withManagedAgentsBeta)
 	if err != nil {
 		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to update agent, got error: %s", err))
 		return
@@ -373,6 +405,9 @@ func (r *AgentResource) Update(ctx context.Context, req resource.UpdateRequest, 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 
+// Delete archives the Agent — there is no hard-delete endpoint (confirmed
+// live: DELETE /v1/agents/{id} 404s immediately; `ant beta:agents` only
+// exposes create/retrieve/update/list/archive).
 func (r *AgentResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	var data AgentModel
 
@@ -381,14 +416,14 @@ func (r *AgentResource) Delete(ctx context.Context, req resource.DeleteRequest, 
 		return
 	}
 
-	httpResp, err := r.client.DeleteAgentWithResponse(ctx, data.Id.ValueString())
+	httpResp, err := r.client.ArchiveAgentWithResponse(ctx, data.Id.ValueString(), withManagedAgentsBeta)
 	if err != nil {
-		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to delete agent, got error: %s", err))
+		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to archive agent, got error: %s", err))
 		return
 	}
 
 	if httpResp.StatusCode() != http.StatusOK {
-		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to delete agent, got status code %d: %s", httpResp.StatusCode(), string(httpResp.Body)))
+		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to archive agent, got status code %d: %s", httpResp.StatusCode(), string(httpResp.Body)))
 		return
 	}
 }
