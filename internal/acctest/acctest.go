@@ -4,7 +4,6 @@ import (
 	"context"
 	"net/http"
 	"os"
-	"strings"
 	"testing"
 
 	"github.com/jianyuan/go-utils/must"
@@ -24,15 +23,6 @@ func init() {
 		apiclient.WithRequestEditorFn(func(ctx context.Context, req *http.Request) error {
 			req.Header.Set("anthropic-version", "2023-06-01")
 			req.Header.Set("x-api-key", TestApiKey)
-			return nil
-		}),
-		apiclient.WithRequestEditorFn(func(ctx context.Context, req *http.Request) error {
-			for _, prefix := range []string{"/v1/agents", "/v1/environments", "/v1/vaults"} {
-				if strings.HasPrefix(req.URL.Path, prefix) {
-					req.Header.Set("anthropic-beta", "managed-agents-2026-04-01")
-					return nil
-				}
-			}
 			return nil
 		}),
 	))
