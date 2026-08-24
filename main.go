@@ -15,7 +15,7 @@ import (
 //go:generate terraform fmt -recursive ./examples/
 
 // Generate documentation.
-//go:generate go tool tfplugindocs generate --provider-name terraform-provider-anthropic
+//go:generate go tool tfplugindocs
 
 var (
 	// these will be set by the goreleaser configuration

@@ -3,9 +3,7 @@ package provider
 import (
 	"context"
 	"net/http"
-	"net/url"
 	"os"
-	"strings"
 
 	"github.com/hashicorp/go-retryablehttp"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
@@ -16,43 +14,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/jianyuan/terraform-provider-anthropic/internal/apiclient"
 )
-
-// managedAgentsBetaHeader is set on requests to managed-agents API paths
-// (/v1/agents, /v1/environments, /v1/vaults). Scoped by path so beta
-// behaviors don't leak onto the stable /v1/organizations/* endpoints.
-const managedAgentsBetaHeader = "managed-agents-2026-04-01"
-
-// managedAgentsBasePathSuffixes lists the path suffixes (after any base_url
-// path prefix) that identify managed-agents endpoints.
-var managedAgentsBasePathSuffixes = []string{
-	"/v1/agents",
-	"/v1/environments",
-	"/v1/vaults",
-}
-
-// newManagedAgentsBetaHeaderEditor returns a request editor that sets the
-// managed-agents beta header on requests whose path matches one of the
-// managed-agents endpoint prefixes. basePath is the path component of the
-// configured base_url (e.g. "/anthropic" when base_url is
-// "https://gateway.example.com/anthropic/"); this lets the matching keep using
-// HasPrefix semantics rather than substring search even when the client points
-// at a proxy with its own path prefix.
-func newManagedAgentsBetaHeaderEditor(basePath string) apiclient.RequestEditorFn {
-	basePath = strings.TrimRight(basePath, "/")
-	prefixes := make([]string, 0, len(managedAgentsBasePathSuffixes))
-	for _, s := range managedAgentsBasePathSuffixes {
-		prefixes = append(prefixes, basePath+s)
-	}
-	return func(ctx context.Context, req *http.Request) error {
-		for _, prefix := range prefixes {
-			if strings.HasPrefix(req.URL.Path, prefix) {
-				req.Header.Set("anthropic-beta", managedAgentsBetaHeader)
-				return nil
-			}
-		}
-		return nil
-	}
-}
 
 // Ensure AnthropicProvider satisfies various provider interfaces.
 var _ provider.Provider = &AnthropicProvider{}
@@ -133,12 +94,6 @@ func (p *AnthropicProvider) Configure(ctx context.Context, req provider.Configur
 	retryClient.Logger = nil
 	retryClient.RetryMax = 10
 
-	parsedBaseUrl, err := url.Parse(baseUrl)
-	if err != nil {
-		resp.Diagnostics.AddError("invalid base_url", err.Error())
-		return
-	}
-
 	client, err := apiclient.NewClientWithResponses(
 		baseUrl,
 		apiclient.WithHTTPClient(retryClient.StandardClient()),
@@ -147,7 +102,6 @@ func (p *AnthropicProvider) Configure(ctx context.Context, req provider.Configur
 			req.Header.Set("x-api-key", apiKey)
 			return nil
 		}),
-		apiclient.WithRequestEditorFn(newManagedAgentsBetaHeaderEditor(parsedBaseUrl.Path)),
 	)
 	if err != nil {
 		resp.Diagnostics.AddError("failed to create API client", err.Error())
@@ -160,10 +114,7 @@ func (p *AnthropicProvider) Configure(ctx context.Context, req provider.Configur
 
 func (p *AnthropicProvider) Resources(ctx context.Context) []func() resource.Resource {
 	return []func() resource.Resource{
-		NewAgentResource,
-		NewEnvironmentResource,
 		NewOrganizationInviteResource,
-		NewVaultResource,
 		NewWorkspaceMemberResource,
 		NewWorkspaceResource,
 	}
@@ -171,12 +122,9 @@ func (p *AnthropicProvider) Resources(ctx context.Context) []func() resource.Res
 
 func (p *AnthropicProvider) DataSources(ctx context.Context) []func() datasource.DataSource {
 	return []func() datasource.DataSource{
-		NewAgentDataSource,
-		NewEnvironmentDataSource,
 		NewOrganizationInvitesDataSource,
 		NewUserDataSource,
 		NewUsersDataSource,
-		NewVaultDataSource,
 		NewWorkspaceDataSource,
 		NewWorkspaceMemberDataSource,
 		NewWorkspaceMembersDataSource,
