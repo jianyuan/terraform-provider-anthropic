@@ -29,7 +29,7 @@ func TestAccWorkspaceMembersDataSource(t *testing.T) {
 						knownvalue.ObjectExact(map[string]knownvalue.Check{
 							"workspace_id":   knownvalue.NotNull(),
 							"user_id":        knownvalue.StringExact(acctest.TestUserId),
-							"workspace_role": knownvalue.StringExact("workspace_developer"),
+							"workspace_role": knownvalue.StringExact("workspace_user"),
 						}),
 					})),
 				},
@@ -51,7 +51,7 @@ data "anthropic_user" "test" {
 resource "anthropic_workspace_member" "test" {
 	workspace_id   = anthropic_workspace.test.id
 	user_id        = data.anthropic_user.test.id
-	workspace_role = "workspace_developer"
+	workspace_role = "workspace_user"
 }
 
 data "anthropic_workspace_members" "test" {
