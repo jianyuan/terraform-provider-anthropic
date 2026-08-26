@@ -4,7 +4,9 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"time"
 
+	retry "github.com/avast/retry-go/v5"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -99,22 +101,33 @@ func (r *WorkspaceMemberResource) Read(ctx context.Context, req resource.ReadReq
 		return
 	}
 
-	httpResp, err := r.client.GetWorkspaceMemberWithResponse(
-		ctx,
-		data.WorkspaceId.ValueString(),
-		data.UserId.ValueString(),
-	)
+	var httpResp *apiclient.GetWorkspaceMemberResponse
+	err := retry.New(
+		retry.Context(ctx),
+		retry.Attempts(10),
+		retry.Delay(3*time.Second),
+	).Do(func() error {
+		var err error
+		httpResp, err = r.client.GetWorkspaceMemberWithResponse(
+			ctx,
+			data.WorkspaceId.ValueString(),
+			data.UserId.ValueString(),
+		)
+		if err != nil {
+			return err
+		} else if httpResp.StatusCode() != http.StatusOK {
+			return fmt.Errorf("status code %d: %s", httpResp.StatusCode(), string(httpResp.Body))
+		} else if httpResp.JSON200 == nil {
+			return fmt.Errorf("empty response body")
+		} else if !data.WorkspaceRole.IsNull() && !data.WorkspaceRole.IsUnknown() && httpResp.JSON200.WorkspaceRole != data.WorkspaceRole.ValueString() {
+			return fmt.Errorf("unexpected workspace role: %s, expected: %s", httpResp.JSON200.WorkspaceRole, data.WorkspaceRole.ValueString())
+		}
+		return nil
+	})
 	if err != nil {
 		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to read, got error: %s", err))
 		return
-	}
-
-	if httpResp.StatusCode() != http.StatusOK {
-		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to read, got status code %d: %s", httpResp.StatusCode(), string(httpResp.Body)))
-		return
-	}
-
-	if httpResp.JSON200 == nil {
+	} else if httpResp == nil {
 		resp.Diagnostics.AddError("Client Error", "Unable to read, got empty response body")
 		return
 	}

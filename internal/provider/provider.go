@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/provider/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/logging"
 	"github.com/jianyuan/terraform-provider-anthropic/internal/apiclient"
 )
 
@@ -89,14 +90,22 @@ func (p *AnthropicProvider) Configure(ctx context.Context, req provider.Configur
 		return
 	}
 
+	transport := http.DefaultTransport
+
+	// Logging
+	transport = logging.NewLoggingHTTPTransport(transport)
+
+	// Retry
 	retryClient := retryablehttp.NewClient()
+	retryClient.HTTPClient = &http.Client{Transport: transport}
 	retryClient.ErrorHandler = retryablehttp.PassthroughErrorHandler
 	retryClient.Logger = nil
 	retryClient.RetryMax = 10
+	transport = retryClient.StandardClient().Transport
 
 	client, err := apiclient.NewClientWithResponses(
 		baseUrl,
-		apiclient.WithHTTPClient(retryClient.StandardClient()),
+		apiclient.WithHTTPClient(&http.Client{Transport: transport}),
 		apiclient.WithRequestEditorFn(func(ctx context.Context, req *http.Request) error {
 			req.Header.Set("anthropic-version", "2023-06-01")
 			req.Header.Set("x-api-key", apiKey)
