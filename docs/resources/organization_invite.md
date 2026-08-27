@@ -29,15 +29,20 @@ resource "anthropic_organization_invite" "user" {
 
 ### Required
 
-- `email` (String) Email address of the person being invited.
-- `role` (String) Role to assign to the invited user. Must be one of `user`, `developer`, `billing`, `admin`, or `claude_code_user`.
+- `email` (String) Email of the User being invited.
+- `role` (String) Organization role of the User. Must be one of `admin`, `billing`, `claude_code_user`, `developer`, `managed`, `membership_admin`, `owner`, `primary_owner`, `user`.
+
+### Optional
+
+- `rbac_group_ids` (Set of String) RBAC group IDs to assign to the User when the Invite is accepted. A non-empty array is accepted only for a Claude Enterprise organization with RBAC groups (beta), and requires the key to carry the `write:rbac_groups` scope.
 
 ### Read-Only
 
-- `created_at` (String) Timestamp when the invite was created.
-- `expires_at` (String) Timestamp when the invite expires.
-- `id` (String) Unique identifier for the invite.
-- `status` (String) Current status of the invite (e.g., pending, accepted, expired).
+- `accepted_at` (String) RFC 3339 datetime string indicating when the Invite was accepted, or null.
+- `expires_at` (String) RFC 3339 datetime string indicating when the Invite expires.
+- `id` (String) ID of the Invite.
+- `invited_at` (String) RFC 3339 datetime string indicating when the Invite was created.
+- `status` (String) Status of the Invite (e.g. `accepted`, `deleted`, `expired`, or `pending`).
 
 ## Import
 

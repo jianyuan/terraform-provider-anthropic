@@ -10,9 +10,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/setplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/jianyuan/terraform-provider-anthropic/internal/apiclient"
+	"github.com/jianyuan/terraform-provider-anthropic/internal/tfutils"
+	supertypes "github.com/orange-cloudavenue/terraform-plugin-framework-supertypes"
 )
 
 func NewOrganizationInviteResource() resource.Resource {
@@ -20,6 +23,7 @@ func NewOrganizationInviteResource() resource.Resource {
 }
 
 var _ resource.Resource = &OrganizationInviteResource{}
+var _ resource.ResourceWithConfigure = &OrganizationInviteResource{}
 var _ resource.ResourceWithImportState = &OrganizationInviteResource{}
 
 type OrganizationInviteResource struct {
@@ -36,46 +40,52 @@ func (r *OrganizationInviteResource) Schema(ctx context.Context, req resource.Sc
 
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
-				MarkdownDescription: "Unique identifier for the invite.",
+				MarkdownDescription: "ID of the Invite.",
 				Computed:            true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
 				},
 			},
 			"email": schema.StringAttribute{
-				MarkdownDescription: "Email address of the person being invited.",
+				MarkdownDescription: "Email of the User being invited.",
 				Required:            true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),
 				},
 			},
 			"role": schema.StringAttribute{
-				MarkdownDescription: "Role to assign to the invited user. Must be one of `user`, `developer`, `billing`, `admin`, or `claude_code_user`.",
+				MarkdownDescription: "Organization role of the User. Must be one of `admin`, `billing`, `claude_code_user`, `developer`, `managed`, `membership_admin`, `owner`, `primary_owner`, `user`.",
 				Required:            true,
 				Validators: []validator.String{
-					stringvalidator.OneOf("user", "developer", "billing", "admin", "claude_code_user"),
+					stringvalidator.OneOf("admin", "billing", "claude_code_user", "developer", "managed", "membership_admin", "owner", "primary_owner", "user"),
 				},
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),
 				},
 			},
+			"rbac_group_ids": schema.SetAttribute{
+				MarkdownDescription: "RBAC group IDs to assign to the User when the Invite is accepted. A non-empty array is accepted only for a Claude Enterprise organization with RBAC groups (beta), and requires the key to carry the `write:rbac_groups` scope.",
+				Optional:            true,
+				CustomType:          supertypes.NewSetTypeOf[string](ctx),
+				PlanModifiers: []planmodifier.Set{
+					setplanmodifier.RequiresReplace(),
+				},
+			},
 			"status": schema.StringAttribute{
-				MarkdownDescription: "Current status of the invite (e.g., pending, accepted, expired).",
+				MarkdownDescription: "Status of the Invite (e.g. `accepted`, `deleted`, `expired`, or `pending`).",
 				Computed:            true,
 			},
-			"created_at": schema.StringAttribute{
-				MarkdownDescription: "Timestamp when the invite was created.",
+			"accepted_at": schema.StringAttribute{
+				MarkdownDescription: "RFC 3339 datetime string indicating when the Invite was accepted, or null.",
 				Computed:            true,
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.UseStateForUnknown(),
-				},
+			},
+			"invited_at": schema.StringAttribute{
+				MarkdownDescription: "RFC 3339 datetime string indicating when the Invite was created.",
+				Computed:            true,
 			},
 			"expires_at": schema.StringAttribute{
-				MarkdownDescription: "Timestamp when the invite expires.",
+				MarkdownDescription: "RFC 3339 datetime string indicating when the Invite expires.",
 				Computed:            true,
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.UseStateForUnknown(),
-				},
 			},
 		},
 	}
@@ -89,30 +99,34 @@ func (r *OrganizationInviteResource) Create(ctx context.Context, req resource.Cr
 		return
 	}
 
+	body := apiclient.CreateInviteJSONRequestBody{
+		Email: data.Email.ValueString(),
+		Role:  apiclient.CreateInviteRequestRole(data.Role.ValueString()),
+	}
+	if !data.RbacGroupIds.IsNull() && !data.RbacGroupIds.IsUnknown() {
+		body.RbacGroupIds = new(tfutils.MergeDiagnostics(data.RbacGroupIds.Get(ctx))(&resp.Diagnostics))
+	}
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
 	httpResp, err := r.client.CreateInviteWithResponse(
 		ctx,
-		apiclient.CreateInviteJSONRequestBody{
-			Email: data.Email.ValueString(),
-			Role:  apiclient.CreateInviteRequestRole(data.Role.ValueString()),
-		},
+		body,
 	)
 	if err != nil {
 		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to create invite, got error: %s", err))
 		return
-	}
-
-	if httpResp.StatusCode() != http.StatusOK {
+	} else if httpResp.StatusCode() != http.StatusOK {
 		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to create invite, got status code %d: %s", httpResp.StatusCode(), string(httpResp.Body)))
 		return
-	}
-
-	if httpResp.JSON200 == nil {
+	} else if httpResp.JSON200 == nil {
 		resp.Diagnostics.AddError("Client Error", "Unable to create invite, got empty response body")
 		return
 	}
 
-	if err := data.Fill(*httpResp.JSON200); err != nil {
-		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to fill data: %s", err))
+	resp.Diagnostics.Append(data.Fill(ctx, *httpResp.JSON200)...)
+	if resp.Diagnostics.HasError() {
 		return
 	}
 
@@ -131,25 +145,19 @@ func (r *OrganizationInviteResource) Read(ctx context.Context, req resource.Read
 	if err != nil {
 		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to read invite, got error: %s", err))
 		return
-	}
-
-	if httpResp.StatusCode() == http.StatusNotFound {
+	} else if httpResp.StatusCode() == http.StatusNotFound {
 		resp.State.RemoveResource(ctx)
 		return
-	}
-
-	if httpResp.StatusCode() != http.StatusOK {
+	} else if httpResp.StatusCode() != http.StatusOK {
 		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to read invite, got status code %d: %s", httpResp.StatusCode(), string(httpResp.Body)))
 		return
-	}
-
-	if httpResp.JSON200 == nil {
+	} else if httpResp.JSON200 == nil {
 		resp.Diagnostics.AddError("Client Error", "Unable to read invite, got empty response body")
 		return
 	}
 
-	if err := data.Fill(*httpResp.JSON200); err != nil {
-		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to fill data: %s", err))
+	resp.Diagnostics.Append(data.Fill(ctx, *httpResp.JSON200)...)
+	if resp.Diagnostics.HasError() {
 		return
 	}
 
@@ -176,9 +184,9 @@ func (r *OrganizationInviteResource) Delete(ctx context.Context, req resource.De
 	if err != nil {
 		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to delete invite, got error: %s", err))
 		return
-	}
-
-	if httpResp.StatusCode() != http.StatusOK {
+	} else if httpResp.StatusCode() == http.StatusNotFound {
+		return
+	} else if httpResp.StatusCode() != http.StatusOK {
 		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to delete invite, got status code %d: %s", httpResp.StatusCode(), string(httpResp.Body)))
 		return
 	}
