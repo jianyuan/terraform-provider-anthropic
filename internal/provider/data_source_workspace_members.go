@@ -83,7 +83,7 @@ func (d *WorkspaceMembersDataSource) Read(ctx context.Context, req datasource.Re
 
 	var members []apiclient.WorkspaceMember
 	params := &apiclient.ListWorkspaceMembersParams{
-		Limit: new(100),
+		Limit: new(int64(100)),
 	}
 
 	for {
@@ -109,11 +109,11 @@ func (d *WorkspaceMembersDataSource) Read(ctx context.Context, req datasource.Re
 
 		members = append(members, httpResp.JSON200.Data...)
 
-		if !httpResp.JSON200.HasMore || httpResp.JSON200.LastId == nil {
+		if !httpResp.JSON200.HasMore || httpResp.JSON200.LastId.IsNull() || !httpResp.JSON200.LastId.IsSpecified() {
 			break
 		}
 
-		params.AfterId = httpResp.JSON200.LastId
+		params.AfterId = new(httpResp.JSON200.LastId.MustGet())
 	}
 
 	if err := data.Fill(members); err != nil {

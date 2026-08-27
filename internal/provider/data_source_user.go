@@ -22,7 +22,7 @@ func (m *UserDataSourceModel) Fill(u apiclient.User) error {
 	m.Id = types.StringValue(u.Id)
 	m.Email = types.StringValue(u.Email)
 	m.Name = types.StringValue(u.Name)
-	m.Role = types.StringValue(u.Role)
+	m.Role = types.StringValue(string(u.Role))
 	m.AddedAt = types.StringValue(u.AddedAt)
 
 	return nil

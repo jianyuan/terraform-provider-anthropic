@@ -17,7 +17,11 @@ func (m *WorkspaceModel) Fill(w apiclient.Workspace) error {
 	m.Id = types.StringValue(w.Id)
 	m.Name = types.StringValue(w.Name)
 	m.CreatedAt = types.StringValue(w.CreatedAt)
-	m.ArchivedAt = types.StringPointerValue(w.ArchivedAt)
+	if v, err := w.ArchivedAt.Get(); err == nil {
+		m.ArchivedAt = types.StringValue(v)
+	} else {
+		m.ArchivedAt = types.StringNull()
+	}
 	m.DisplayColor = types.StringValue(w.DisplayColor)
 
 	return nil

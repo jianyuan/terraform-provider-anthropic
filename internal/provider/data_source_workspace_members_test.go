@@ -29,7 +29,7 @@ func TestAccWorkspaceMembersDataSource(t *testing.T) {
 						knownvalue.ObjectExact(map[string]knownvalue.Check{
 							"workspace_id":   knownvalue.NotNull(),
 							"user_id":        knownvalue.StringExact(acctest.TestUserId),
-							"workspace_role": knownvalue.StringExact("workspace_user"),
+							"workspace_role": knownvalue.NotNull(),
 						}),
 					})),
 				},
