@@ -67,7 +67,7 @@ func (r *WorkspaceMemberResource) Create(ctx context.Context, req resource.Creat
 		data.WorkspaceId.ValueString(),
 		apiclient.CreateWorkspaceMemberJSONRequestBody{
 			UserId:        data.UserId.ValueString(),
-			WorkspaceRole: data.WorkspaceRole.ValueString(),
+			WorkspaceRole: apiclient.CreateWorkspaceMemberRequestWorkspaceRole(data.WorkspaceRole.ValueString()),
 		},
 	)
 	if err != nil {
@@ -119,7 +119,7 @@ func (r *WorkspaceMemberResource) Read(ctx context.Context, req resource.ReadReq
 			return fmt.Errorf("status code %d: %s", httpResp.StatusCode(), string(httpResp.Body))
 		} else if httpResp.JSON200 == nil {
 			return fmt.Errorf("empty response body")
-		} else if !data.WorkspaceRole.IsNull() && !data.WorkspaceRole.IsUnknown() && httpResp.JSON200.WorkspaceRole != data.WorkspaceRole.ValueString() {
+		} else if !data.WorkspaceRole.IsNull() && !data.WorkspaceRole.IsUnknown() && string(httpResp.JSON200.WorkspaceRole) != data.WorkspaceRole.ValueString() {
 			return fmt.Errorf("unexpected workspace role: %s, expected: %s", httpResp.JSON200.WorkspaceRole, data.WorkspaceRole.ValueString())
 		}
 		return nil
@@ -153,7 +153,7 @@ func (r *WorkspaceMemberResource) Update(ctx context.Context, req resource.Updat
 		data.WorkspaceId.ValueString(),
 		data.UserId.ValueString(),
 		apiclient.UpdateWorkspaceMemberJSONRequestBody{
-			WorkspaceRole: data.WorkspaceRole.ValueString(),
+			WorkspaceRole: apiclient.UpdateWorkspaceMemberRequestWorkspaceRole(data.WorkspaceRole.ValueString()),
 		},
 	)
 	if err != nil {

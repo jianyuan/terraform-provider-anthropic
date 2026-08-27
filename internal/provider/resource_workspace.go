@@ -70,6 +70,7 @@ func (r *WorkspaceResource) Create(ctx context.Context, req resource.CreateReque
 
 	httpResp, err := r.client.CreateWorkspaceWithResponse(
 		ctx,
+		nil,
 		apiclient.CreateWorkspaceJSONRequestBody{
 			Name: data.Name.ValueString(),
 		},
@@ -144,7 +145,7 @@ func (r *WorkspaceResource) Update(ctx context.Context, req resource.UpdateReque
 		ctx,
 		data.Id.ValueString(),
 		apiclient.UpdateWorkspaceJSONRequestBody{
-			Name: data.Name.ValueString(),
+			Name: data.Name.ValueStringPointer(),
 		},
 	)
 	if err != nil {

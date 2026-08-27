@@ -18,7 +18,7 @@ type OrganizationInviteDataSourceModel struct {
 	Email     string `tfsdk:"email"`
 	Role      string `tfsdk:"role"`
 	Status    string `tfsdk:"status"`
-	CreatedAt string `tfsdk:"created_at"`
+	CreatedAt string `tfsdk:"created_at"` // TODO: rename to invited_at
 	ExpiresAt string `tfsdk:"expires_at"`
 }
 
@@ -28,9 +28,9 @@ func (m *OrganizationInvitesDataSourceModel) Fill(invites []apiclient.Invite) er
 		m.Invites[i] = OrganizationInviteDataSourceModel{
 			Id:        inv.Id,
 			Email:     inv.Email,
-			Role:      inv.Role,
-			Status:    inv.Status,
-			CreatedAt: inv.CreatedAt,
+			Role:      string(inv.Role),
+			Status:    string(inv.Status),
+			CreatedAt: inv.InvitedAt,
 			ExpiresAt: inv.ExpiresAt,
 		}
 	}
@@ -103,7 +103,7 @@ func (d *OrganizationInvitesDataSource) Read(ctx context.Context, req datasource
 
 	var invites []apiclient.Invite
 	params := &apiclient.ListInvitesParams{
-		Limit: new(100),
+		Limit: new(int64(100)),
 	}
 
 	for {
@@ -128,11 +128,11 @@ func (d *OrganizationInvitesDataSource) Read(ctx context.Context, req datasource
 
 		invites = append(invites, httpResp.JSON200.Data...)
 
-		if !httpResp.JSON200.HasMore || httpResp.JSON200.LastId == nil {
+		if !httpResp.JSON200.HasMore || httpResp.JSON200.LastId.IsNull() || !httpResp.JSON200.LastId.IsSpecified() {
 			break
 		}
 
-		params.AfterId = httpResp.JSON200.LastId
+		params.AfterId = new(httpResp.JSON200.LastId.MustGet())
 	}
 
 	if err := data.Fill(invites); err != nil {

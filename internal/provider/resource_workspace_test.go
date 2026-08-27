@@ -24,7 +24,7 @@ func init() {
 			ctx := context.Background()
 
 			params := &apiclient.ListWorkspacesParams{
-				Limit: new(100),
+				Limit: new(int64(100)),
 			}
 
 			for {
@@ -60,11 +60,11 @@ func init() {
 					log.Printf("[INFO] Archived workspace %s", workspace.Id)
 				}
 
-				if !httpResp.JSON200.HasMore || httpResp.JSON200.LastId == nil {
+				if !httpResp.JSON200.HasMore || httpResp.JSON200.LastId.IsNull() || !httpResp.JSON200.LastId.IsSpecified() {
 					break
 				}
 
-				params.AfterId = httpResp.JSON200.LastId
+				params.AfterId = new(httpResp.JSON200.LastId.MustGet())
 			}
 
 			return nil

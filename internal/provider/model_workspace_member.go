@@ -14,7 +14,7 @@ type WorkspaceMemberModel struct {
 func (m *WorkspaceMemberModel) Fill(data apiclient.WorkspaceMember) error {
 	m.WorkspaceId = types.StringValue(data.WorkspaceId)
 	m.UserId = types.StringValue(data.UserId)
-	m.WorkspaceRole = types.StringValue(data.WorkspaceRole)
+	m.WorkspaceRole = types.StringValue(string(data.WorkspaceRole))
 
 	return nil
 }

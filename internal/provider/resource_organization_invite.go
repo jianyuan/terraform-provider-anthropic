@@ -93,7 +93,7 @@ func (r *OrganizationInviteResource) Create(ctx context.Context, req resource.Cr
 		ctx,
 		apiclient.CreateInviteJSONRequestBody{
 			Email: data.Email.ValueString(),
-			Role:  data.Role.ValueString(),
+			Role:  apiclient.CreateInviteRequestRole(data.Role.ValueString()),
 		},
 	)
 	if err != nil {

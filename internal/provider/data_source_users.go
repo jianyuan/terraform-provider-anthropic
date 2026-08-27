@@ -85,7 +85,7 @@ func (d *UsersDataSource) Read(ctx context.Context, req datasource.ReadRequest, 
 
 	var users []apiclient.User
 	params := &apiclient.ListUsersParams{
-		Limit: new(100),
+		Limit: new(int64(100)),
 	}
 
 	for {
@@ -110,11 +110,11 @@ func (d *UsersDataSource) Read(ctx context.Context, req datasource.ReadRequest, 
 
 		users = append(users, httpResp.JSON200.Data...)
 
-		if !httpResp.JSON200.HasMore || httpResp.JSON200.LastId == nil {
+		if !httpResp.JSON200.HasMore || httpResp.JSON200.LastId.IsNull() || !httpResp.JSON200.LastId.IsSpecified() {
 			break
 		}
 
-		params.AfterId = httpResp.JSON200.LastId
+		params.AfterId = new(httpResp.JSON200.LastId.MustGet())
 	}
 
 	if err := data.Fill(users); err != nil {
