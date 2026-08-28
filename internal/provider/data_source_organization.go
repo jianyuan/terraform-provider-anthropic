@@ -16,7 +16,7 @@ type OrganizationDataSourceModel struct {
 	Name types.String `tfsdk:"name"`
 }
 
-func (m *OrganizationDataSourceModel) Fill(org apiclient.Organization) (diags diag.Diagnostics) {
+func (m *OrganizationDataSourceModel) FromAPI(org apiclient.Organization) (diags diag.Diagnostics) {
 	m.ID = types.StringValue(org.Id.String())
 	m.Name = types.StringValue(org.Name)
 	return
@@ -70,7 +70,7 @@ func (d *OrganizationDataSource) Read(ctx context.Context, req datasource.ReadRe
 		return
 	}
 
-	resp.Diagnostics.Append(data.Fill(*org)...)
+	resp.Diagnostics.Append(data.FromAPI(*org)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}

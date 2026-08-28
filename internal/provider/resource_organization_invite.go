@@ -118,7 +118,7 @@ func (r *OrganizationInviteResource) Create(ctx context.Context, req resource.Cr
 		return
 	}
 
-	resp.Diagnostics.Append(data.Fill(ctx, *invite)...)
+	resp.Diagnostics.Append(data.FromAPI(ctx, *invite)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -146,7 +146,7 @@ func (r *OrganizationInviteResource) Read(ctx context.Context, req resource.Read
 		return
 	}
 
-	resp.Diagnostics.Append(data.Fill(ctx, *invite)...)
+	resp.Diagnostics.Append(data.FromAPI(ctx, *invite)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}

@@ -22,7 +22,7 @@ type OrganizationInviteDataSourceModel struct {
 	ExpiresAt string `tfsdk:"expires_at"`
 }
 
-func (m *OrganizationInvitesDataSourceModel) Fill(invites []apiclient.Invite) error {
+func (m *OrganizationInvitesDataSourceModel) FromAPI(invites []apiclient.Invite) error {
 	m.Invites = make([]OrganizationInviteDataSourceModel, len(invites))
 	for i, inv := range invites {
 		m.Invites[i] = OrganizationInviteDataSourceModel{
@@ -135,7 +135,7 @@ func (d *OrganizationInvitesDataSource) Read(ctx context.Context, req datasource
 		params.AfterId = new(httpResp.JSON200.LastId.MustGet())
 	}
 
-	if err := data.Fill(invites); err != nil {
+	if err := data.FromAPI(invites); err != nil {
 		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to fill data, got error: %s", err))
 		return
 	}

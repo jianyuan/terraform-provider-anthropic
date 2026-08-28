@@ -15,7 +15,7 @@ type WorkspacesDataSourceModel struct {
 	Workspaces supertypes.SetNestedObjectValueOf[WorkspaceModel] `tfsdk:"workspaces"`
 }
 
-func (m *WorkspacesDataSourceModel) Fill(ctx context.Context, workspaces []apiclient.Workspace) (diags diag.Diagnostics) {
+func (m *WorkspacesDataSourceModel) FromAPI(ctx context.Context, workspaces []apiclient.Workspace) (diags diag.Diagnostics) {
 	m.Workspaces = supertypes.NewSetNestedObjectValueOfValueSlice(ctx, lo.Map(workspaces, func(workspace apiclient.Workspace, _ int) WorkspaceModel {
 		var mm WorkspaceModel
 		diags.Append(mm.FromAPI(ctx, workspace)...)
@@ -75,7 +75,7 @@ func (d *WorkspacesDataSource) Read(ctx context.Context, req datasource.ReadRequ
 		params.AfterId = new(page.LastId.MustGet())
 	}
 
-	resp.Diagnostics.Append(data.Fill(ctx, workspaces)...)
+	resp.Diagnostics.Append(data.FromAPI(ctx, workspaces)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}

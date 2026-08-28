@@ -63,7 +63,7 @@ func (d *WorkspaceMemberDataSource) Read(ctx context.Context, req datasource.Rea
 		return
 	}
 
-	resp.Diagnostics.Append(data.Fill(ctx, *member)...)
+	resp.Diagnostics.Append(data.FromAPI(ctx, *member)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}

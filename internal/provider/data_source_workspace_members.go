@@ -18,10 +18,10 @@ type WorkspaceMembersDataSourceModel struct {
 	Members supertypes.SetNestedObjectValueOf[WorkspaceMemberModel] `tfsdk:"members"`
 }
 
-func (m *WorkspaceMembersDataSourceModel) Fill(ctx context.Context, members []apiclient.WorkspaceMember) (diags diag.Diagnostics) {
-	m.Members = supertypes.NewSetNestedObjectValueOfValueSlice(ctx, lo.Map(members, func(member apiclient.WorkspaceMember, _ int) WorkspaceMemberModel {
+func (m *WorkspaceMembersDataSourceModel) FromAPI(FromAPI context.Context, members []apiclient.WorkspaceMember) (diags diag.Diagnostics) {
+	m.Members = supertypes.NewSetNestedObjectValueOfValueSlice(FromAPI, lo.Map(members, func(member apiclient.WorkspaceMember, _ int) WorkspaceMemberModel {
 		var mm WorkspaceMemberModel
-		diags.Append(mm.Fill(ctx, member)...)
+		diags.Append(mm.FromAPI(FromAPI, member)...)
 		return mm
 	}))
 	return
@@ -109,7 +109,7 @@ func (d *WorkspaceMembersDataSource) Read(ctx context.Context, req datasource.Re
 		params.AfterId = new(page.LastId.MustGet())
 	}
 
-	resp.Diagnostics.Append(data.Fill(ctx, members)...)
+	resp.Diagnostics.Append(data.FromAPI(ctx, members)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}

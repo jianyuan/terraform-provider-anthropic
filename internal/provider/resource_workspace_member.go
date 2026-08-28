@@ -79,7 +79,7 @@ func (r *WorkspaceMemberResource) Create(ctx context.Context, req resource.Creat
 		return
 	}
 
-	resp.Diagnostics.Append(data.Fill(ctx, *member)...)
+	resp.Diagnostics.Append(data.FromAPI(ctx, *member)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -127,7 +127,7 @@ func (r *WorkspaceMemberResource) Read(ctx context.Context, req resource.ReadReq
 		return
 	}
 
-	resp.Diagnostics.Append(data.Fill(ctx, *httpResp.JSON200)...)
+	resp.Diagnostics.Append(data.FromAPI(ctx, *httpResp.JSON200)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -158,7 +158,7 @@ func (r *WorkspaceMemberResource) Update(ctx context.Context, req resource.Updat
 		return
 	}
 
-	resp.Diagnostics.Append(data.Fill(ctx, *member)...)
+	resp.Diagnostics.Append(data.FromAPI(ctx, *member)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}

@@ -14,7 +14,7 @@ type WorkspaceMemberModel struct {
 	WorkspaceRole types.String `tfsdk:"workspace_role"`
 }
 
-func (m *WorkspaceMemberModel) Fill(ctx context.Context, member apiclient.WorkspaceMember) (diags diag.Diagnostics) {
+func (m *WorkspaceMemberModel) FromAPI(ctx context.Context, member apiclient.WorkspaceMember) (diags diag.Diagnostics) {
 	m.WorkspaceId = types.StringValue(member.WorkspaceId)
 	m.UserId = types.StringValue(member.UserId)
 	m.WorkspaceRole = types.StringValue(string(member.WorkspaceRole))

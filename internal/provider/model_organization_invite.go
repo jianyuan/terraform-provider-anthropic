@@ -21,7 +21,7 @@ type OrganizationInviteModel struct {
 	ExpiresAt    types.String                  `tfsdk:"expires_at"`
 }
 
-func (m *OrganizationInviteModel) Fill(ctx context.Context, data apiclient.Invite) (diags diag.Diagnostics) {
+func (m *OrganizationInviteModel) FromAPI(ctx context.Context, data apiclient.Invite) (diags diag.Diagnostics) {
 	m.Id = types.StringValue(data.Id)
 	m.Email = types.StringValue(data.Email)
 	m.Role = types.StringValue(string(data.Role))

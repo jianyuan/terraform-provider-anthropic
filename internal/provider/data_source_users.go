@@ -16,10 +16,10 @@ type UsersDataSourceModel struct {
 	Users supertypes.SetNestedObjectValueOf[UserDataSourceModel] `tfsdk:"users"`
 }
 
-func (m *UsersDataSourceModel) Fill(ctx context.Context, users []apiclient.User) (diags diag.Diagnostics) {
+func (m *UsersDataSourceModel) FromAPI(ctx context.Context, users []apiclient.User) (diags diag.Diagnostics) {
 	m.Users = supertypes.NewSetNestedObjectValueOfValueSlice(ctx, lo.Map(users, func(user apiclient.User, _ int) UserDataSourceModel {
 		var mm UserDataSourceModel
-		diags.Append(mm.Fill(ctx, user)...)
+		diags.Append(mm.FromAPI(ctx, user)...)
 		return mm
 	}))
 	return
@@ -110,7 +110,7 @@ func (d *UsersDataSource) Read(ctx context.Context, req datasource.ReadRequest, 
 		params.AfterId = new(page.LastId.MustGet())
 	}
 
-	resp.Diagnostics.Append(data.Fill(ctx, users)...)
+	resp.Diagnostics.Append(data.FromAPI(ctx, users)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}

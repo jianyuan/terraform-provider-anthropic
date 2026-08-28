@@ -19,7 +19,7 @@ type UserDataSourceModel struct {
 	AddedAt types.String `tfsdk:"added_at"`
 }
 
-func (m *UserDataSourceModel) Fill(ctx context.Context, data apiclient.User) (diags diag.Diagnostics) {
+func (m *UserDataSourceModel) FromAPI(ctx context.Context, data apiclient.User) (diags diag.Diagnostics) {
 	m.Id = types.StringValue(data.Id)
 	m.Email = types.StringValue(data.Email)
 	m.Name = types.StringValue(data.Name)
@@ -89,7 +89,7 @@ func (d *UserDataSource) Read(ctx context.Context, req datasource.ReadRequest, r
 		return
 	}
 
-	resp.Diagnostics.Append(data.Fill(ctx, *user)...)
+	resp.Diagnostics.Append(data.FromAPI(ctx, *user)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
