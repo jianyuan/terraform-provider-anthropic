@@ -46,6 +46,7 @@ func (r *ServiceAccountResource) Create(ctx context.Context, req resource.Create
 		ctx,
 		nil,
 		*body,
+		r.WithAuthTokenRequestEditorFn(),
 	)))(&resp.Diagnostics)
 	if resp.Diagnostics.HasError() {
 		return
@@ -71,6 +72,7 @@ func (r *ServiceAccountResource) Read(ctx context.Context, req resource.ReadRequ
 		ctx,
 		data.Id.ValueString(),
 		nil,
+		r.WithAuthTokenRequestEditorFn(),
 	)))(&resp.Diagnostics)
 	if resp.Diagnostics.HasError() {
 		return
@@ -102,6 +104,7 @@ func (r *ServiceAccountResource) Update(ctx context.Context, req resource.Update
 		data.Id.ValueString(),
 		nil,
 		*body,
+		r.WithAuthTokenRequestEditorFn(),
 	)))(&resp.Diagnostics)
 	if resp.Diagnostics.HasError() {
 		return
@@ -127,6 +130,7 @@ func (r *ServiceAccountResource) Delete(ctx context.Context, req resource.Delete
 		ctx,
 		data.Id.ValueString(),
 		nil,
+		r.WithAuthTokenRequestEditorFn(),
 	)))(&resp.Diagnostics)
 }
 

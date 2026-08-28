@@ -62,7 +62,10 @@ func (d *OrganizationDataSource) Read(ctx context.Context, req datasource.ReadRe
 		return
 	}
 
-	org := fwdiag.Merge(apiclient.ReadJSON200(d.client.GetCurrentOrganizationWithResponse(ctx)))(&resp.Diagnostics)
+	org := fwdiag.Merge(apiclient.ReadJSON200(d.client.GetCurrentOrganizationWithResponse(
+		ctx,
+		d.WithApiKeyRequestEditorFn(),
+	)))(&resp.Diagnostics)
 	if resp.Diagnostics.HasError() {
 		return
 	}

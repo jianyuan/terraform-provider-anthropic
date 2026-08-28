@@ -95,6 +95,7 @@ func (d *UsersDataSource) Read(ctx context.Context, req datasource.ReadRequest, 
 		page := fwdiag.Merge(apiclient.ReadJSON200(d.client.ListUsersWithResponse(
 			ctx,
 			params,
+			d.WithApiKeyRequestEditorFn(),
 		)))(&resp.Diagnostics)
 		if resp.Diagnostics.HasError() {
 			return

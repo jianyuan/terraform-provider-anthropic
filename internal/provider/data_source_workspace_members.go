@@ -94,6 +94,7 @@ func (d *WorkspaceMembersDataSource) Read(ctx context.Context, req datasource.Re
 			ctx,
 			data.Id.ValueString(),
 			params,
+			d.WithApiKeyRequestEditorFn(),
 		)))(&resp.Diagnostics)
 		if resp.Diagnostics.HasError() {
 			return

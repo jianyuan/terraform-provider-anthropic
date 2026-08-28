@@ -112,6 +112,7 @@ func (r *OrganizationInviteResource) Create(ctx context.Context, req resource.Cr
 	invite := fwdiag.Merge(apiclient.CreateJSON200(r.client.CreateInviteWithResponse(
 		ctx,
 		body,
+		r.WithApiKeyRequestEditorFn(),
 	)))(&resp.Diagnostics)
 	if resp.Diagnostics.HasError() {
 		return
@@ -133,7 +134,11 @@ func (r *OrganizationInviteResource) Read(ctx context.Context, req resource.Read
 		return
 	}
 
-	invite := fwdiag.Merge(apiclient.ReadJSON200(r.client.GetInviteWithResponse(ctx, data.Id.ValueString())))(&resp.Diagnostics)
+	invite := fwdiag.Merge(apiclient.ReadJSON200(r.client.GetInviteWithResponse(
+		ctx,
+		data.Id.ValueString(),
+		r.WithApiKeyRequestEditorFn(),
+	)))(&resp.Diagnostics)
 	if resp.Diagnostics.HasError() {
 		if resp.Diagnostics.Contains(fwdiag.ErrorDiagnosticNotFound) {
 			resp.State.RemoveResource(ctx)
@@ -165,6 +170,7 @@ func (r *OrganizationInviteResource) Delete(ctx context.Context, req resource.De
 	_ = fwdiag.Merge(apiclient.DeleteJSON200(r.client.DeleteInviteWithResponse(
 		ctx,
 		data.Id.ValueString(),
+		r.WithApiKeyRequestEditorFn(),
 	)))(&resp.Diagnostics)
 }
 

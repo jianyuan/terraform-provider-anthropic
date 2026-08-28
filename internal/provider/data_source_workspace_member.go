@@ -57,6 +57,7 @@ func (d *WorkspaceMemberDataSource) Read(ctx context.Context, req datasource.Rea
 		ctx,
 		data.WorkspaceId.ValueString(),
 		data.UserId.ValueString(),
+		d.WithApiKeyRequestEditorFn(),
 	)))(&resp.Diagnostics)
 	if resp.Diagnostics.HasError() {
 		return

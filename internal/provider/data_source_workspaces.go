@@ -60,6 +60,7 @@ func (d *WorkspacesDataSource) Read(ctx context.Context, req datasource.ReadRequ
 		page := fwdiag.Merge(apiclient.ReadJSON200(d.client.ListWorkspacesWithResponse(
 			ctx,
 			params,
+			d.WithApiKeyRequestEditorFn(),
 		)))(&resp.Diagnostics)
 		if resp.Diagnostics.HasError() {
 			return
