@@ -5,9 +5,6 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/jianyuan/terraform-provider-anthropic/internal/apiclient"
 	"github.com/jianyuan/terraform-provider-anthropic/internal/fwdiag"
 )
@@ -29,35 +26,7 @@ func (r *WorkspaceResource) Metadata(ctx context.Context, req resource.MetadataR
 }
 
 func (r *WorkspaceResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
-	resp.Schema = schema.Schema{
-		MarkdownDescription: "Workspace resource.",
-
-		Attributes: map[string]schema.Attribute{
-			"id": schema.StringAttribute{
-				MarkdownDescription: "ID of the Workspace.",
-				Computed:            true,
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.UseStateForUnknown(),
-				},
-			},
-			"name": schema.StringAttribute{
-				MarkdownDescription: "Name of the Workspace.",
-				Required:            true,
-			},
-			"created_at": schema.StringAttribute{
-				MarkdownDescription: "RFC 3339 datetime string indicating when the Workspace was created.",
-				Computed:            true,
-			},
-			"archived_at": schema.StringAttribute{
-				MarkdownDescription: "RFC 3339 datetime string indicating when the Workspace was archived, or null if the Workspace is not archived.",
-				Computed:            true,
-			},
-			"display_color": schema.StringAttribute{
-				MarkdownDescription: "Hex color code representing the Workspace in the Anthropic Console.",
-				Computed:            true,
-			},
-		},
-	}
+	resp.Schema = workspaceSchema().GetResource(ctx)
 }
 
 func (r *WorkspaceResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
@@ -68,18 +37,21 @@ func (r *WorkspaceResource) Create(ctx context.Context, req resource.CreateReque
 		return
 	}
 
+	body := fwdiag.Merge(data.ToAPIForCreate(ctx))(&resp.Diagnostics)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
 	workspace := fwdiag.Merge(apiclient.CreateJSON200(r.client.CreateWorkspaceWithResponse(
 		ctx,
 		nil,
-		apiclient.CreateWorkspaceJSONRequestBody{
-			Name: data.Name.ValueString(),
-		},
+		*body,
 	)))(&resp.Diagnostics)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	resp.Diagnostics.Append(data.Fill(ctx, *workspace)...)
+	resp.Diagnostics.Append(data.FromAPI(ctx, *workspace)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -103,7 +75,7 @@ func (r *WorkspaceResource) Read(ctx context.Context, req resource.ReadRequest, 
 		return
 	}
 
-	resp.Diagnostics.Append(data.Fill(ctx, *workspace)...)
+	resp.Diagnostics.Append(data.FromAPI(ctx, *workspace)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -119,18 +91,21 @@ func (r *WorkspaceResource) Update(ctx context.Context, req resource.UpdateReque
 		return
 	}
 
+	body := fwdiag.Merge(data.ToAPIForUpdate(ctx))(&resp.Diagnostics)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
 	workspace := fwdiag.Merge(apiclient.UpdateJSON200(r.client.UpdateWorkspaceWithResponse(
 		ctx,
 		data.Id.ValueString(),
-		apiclient.UpdateWorkspaceJSONRequestBody{
-			Name: data.Name.ValueStringPointer(),
-		},
+		*body,
 	)))(&resp.Diagnostics)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	resp.Diagnostics.Append(data.Fill(ctx, *workspace)...)
+	resp.Diagnostics.Append(data.FromAPI(ctx, *workspace)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}

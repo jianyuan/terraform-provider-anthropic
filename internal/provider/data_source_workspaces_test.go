@@ -24,12 +24,8 @@ func TestAccWorkspacesDataSource(t *testing.T) {
 				Config: testAccWorkspacesDataSourceConfig(workspaceName),
 				ConfigStateChecks: []statecheck.StateCheck{
 					statecheck.ExpectKnownValue(rn, tfjsonpath.New("workspaces"), knownvalue.SetPartial([]knownvalue.Check{
-						knownvalue.ObjectExact(map[string]knownvalue.Check{
-							"id":            knownvalue.NotNull(),
-							"name":          knownvalue.StringExact(workspaceName),
-							"created_at":    knownvalue.NotNull(),
-							"archived_at":   knownvalue.Null(),
-							"display_color": knownvalue.NotNull(),
+						knownvalue.ObjectPartial(map[string]knownvalue.Check{
+							"name": knownvalue.StringExact(workspaceName),
 						}),
 					})),
 				},

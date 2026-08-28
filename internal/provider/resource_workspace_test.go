@@ -81,13 +81,24 @@ func TestAccWorkspaceResource(t *testing.T) {
 		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccWorkspaceResourceConfig(workspaceName),
+				Config: testAccWorkspaceResourceConfig(workspaceName, ""),
 				ConfigStateChecks: []statecheck.StateCheck{
 					statecheck.ExpectKnownValue(rn, tfjsonpath.New("id"), knownvalue.NotNull()),
 					statecheck.ExpectKnownValue(rn, tfjsonpath.New("name"), knownvalue.StringExact(workspaceName)),
 					statecheck.ExpectKnownValue(rn, tfjsonpath.New("created_at"), knownvalue.NotNull()),
 					statecheck.ExpectKnownValue(rn, tfjsonpath.New("archived_at"), knownvalue.Null()),
 					statecheck.ExpectKnownValue(rn, tfjsonpath.New("display_color"), knownvalue.NotNull()),
+					statecheck.ExpectKnownValue(rn, tfjsonpath.New("compartment_id"), knownvalue.NotNull()),
+					statecheck.ExpectKnownValue(rn, tfjsonpath.New("data_residency"), knownvalue.ObjectExact(map[string]knownvalue.Check{
+						"allowed_inference_geos": knownvalue.ObjectExact(map[string]knownvalue.Check{
+							"values":       knownvalue.Null(),
+							"unrestricted": knownvalue.Bool(true),
+						}),
+						"default_inference_geo": knownvalue.StringExact("global"),
+						"workspace_geo":         knownvalue.StringExact("us"),
+					})),
+					statecheck.ExpectKnownValue(rn, tfjsonpath.New("external_key_id"), knownvalue.Null()),
+					statecheck.ExpectKnownValue(rn, tfjsonpath.New("tags"), knownvalue.MapSizeExact(0)),
 				},
 			},
 			{
@@ -96,23 +107,41 @@ func TestAccWorkspaceResource(t *testing.T) {
 				ImportStateVerify: true,
 			},
 			{
-				Config: testAccWorkspaceResourceConfig(workspaceName + "-updated"),
+				Config: testAccWorkspaceResourceConfig(workspaceName+"-updated", `
+					tags = {
+						foo = "bar"
+					}
+				`),
 				ConfigStateChecks: []statecheck.StateCheck{
 					statecheck.ExpectKnownValue(rn, tfjsonpath.New("id"), knownvalue.NotNull()),
 					statecheck.ExpectKnownValue(rn, tfjsonpath.New("name"), knownvalue.StringExact(workspaceName+"-updated")),
 					statecheck.ExpectKnownValue(rn, tfjsonpath.New("created_at"), knownvalue.NotNull()),
 					statecheck.ExpectKnownValue(rn, tfjsonpath.New("archived_at"), knownvalue.Null()),
 					statecheck.ExpectKnownValue(rn, tfjsonpath.New("display_color"), knownvalue.NotNull()),
+					statecheck.ExpectKnownValue(rn, tfjsonpath.New("compartment_id"), knownvalue.NotNull()),
+					statecheck.ExpectKnownValue(rn, tfjsonpath.New("data_residency"), knownvalue.ObjectExact(map[string]knownvalue.Check{
+						"allowed_inference_geos": knownvalue.ObjectExact(map[string]knownvalue.Check{
+							"values":       knownvalue.Null(),
+							"unrestricted": knownvalue.Bool(true),
+						}),
+						"default_inference_geo": knownvalue.StringExact("global"),
+						"workspace_geo":         knownvalue.StringExact("us"),
+					})),
+					statecheck.ExpectKnownValue(rn, tfjsonpath.New("external_key_id"), knownvalue.Null()),
+					statecheck.ExpectKnownValue(rn, tfjsonpath.New("tags"), knownvalue.MapExact(map[string]knownvalue.Check{
+						"foo": knownvalue.StringExact("bar"),
+					})),
 				},
 			},
 		},
 	})
 }
 
-func testAccWorkspaceResourceConfig(workspaceName string) string {
+func testAccWorkspaceResourceConfig(name, extra string) string {
 	return fmt.Sprintf(`
 resource "anthropic_workspace" "test" {
 	name = %[1]q
+	%[2]s
 }
-`, workspaceName)
+`, name, extra)
 }

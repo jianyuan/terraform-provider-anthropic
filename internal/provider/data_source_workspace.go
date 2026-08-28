@@ -4,7 +4,6 @@ import (
 	"context"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
-	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/jianyuan/terraform-provider-anthropic/internal/apiclient"
 	"github.com/jianyuan/terraform-provider-anthropic/internal/fwdiag"
 )
@@ -25,32 +24,7 @@ func (d *WorkspaceDataSource) Metadata(ctx context.Context, req datasource.Metad
 }
 
 func (d *WorkspaceDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
-	resp.Schema = schema.Schema{
-		MarkdownDescription: "Get information about a Workspace.",
-
-		Attributes: map[string]schema.Attribute{
-			"id": schema.StringAttribute{
-				MarkdownDescription: "ID of the Workspace.",
-				Required:            true,
-			},
-			"name": schema.StringAttribute{
-				MarkdownDescription: "Name of the Workspace.",
-				Computed:            true,
-			},
-			"created_at": schema.StringAttribute{
-				MarkdownDescription: "RFC 3339 datetime string indicating when the Workspace was created.",
-				Computed:            true,
-			},
-			"archived_at": schema.StringAttribute{
-				MarkdownDescription: "RFC 3339 datetime string indicating when the Workspace was archived, or null if the Workspace is not archived.",
-				Computed:            true,
-			},
-			"display_color": schema.StringAttribute{
-				MarkdownDescription: "Hex color code representing the Workspace in the Anthropic Console.",
-				Computed:            true,
-			},
-		},
-	}
+	resp.Schema = workspaceSchema().GetDataSource(ctx)
 }
 
 func (d *WorkspaceDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
@@ -69,7 +43,7 @@ func (d *WorkspaceDataSource) Read(ctx context.Context, req datasource.ReadReque
 		return
 	}
 
-	resp.Diagnostics.Append(data.Fill(ctx, *workspace)...)
+	resp.Diagnostics.Append(data.FromAPI(ctx, *workspace)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}

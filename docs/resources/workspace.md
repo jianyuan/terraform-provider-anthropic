@@ -3,12 +3,12 @@
 page_title: "anthropic_workspace Resource - terraform-provider-anthropic"
 subcategory: ""
 description: |-
-  Workspace resource.
+  Manage a Workspace.
 ---
 
 # anthropic_workspace (Resource)
 
-Workspace resource.
+Manage a Workspace.
 
 ## Example Usage
 
@@ -25,12 +25,36 @@ resource "anthropic_workspace" "example" {
 
 - `name` (String) Name of the Workspace.
 
+### Optional
+
+- `data_residency` (Attributes) Data residency configuration. (see [below for nested schema](#nestedatt--data_residency))
+- `external_key_id` (String) <i style="color:red;font-weight: bold">(ForceNew)</i> ID of the customer-managed encryption key (CMEK) configuration to use for this Workspace. Setting this field requires CMEK to be enabled for your organization. When set, data stored for this Workspace is encrypted with the referenced key. Create key configurations with the External Keys API. This field is write-once: once a key is attached to a Workspace it cannot be detached or replaced. To rotate key material, rotate the underlying key on your cloud KMS; the `external_key_id` stays the same.
+- `tags` (Map of String) User-defined tags as string key-value pairs. Keys may not begin with `anthropic`.
+
 ### Read-Only
 
 - `archived_at` (String) RFC 3339 datetime string indicating when the Workspace was archived, or null if the Workspace is not archived.
+- `compartment_id` (String) Identifier for this Workspace's encryption compartment. When you configure a customer-managed encryption key (CMEK) on AWS, reference this value in your KMS key-policy condition so the key is scoped to this compartment. On GCP and Azure, Anthropic enforces the compartment binding automatically; you do not need to reference this value in your key configuration. See the CMEK integration guide for the required key configuration, including the value used during key validation.
 - `created_at` (String) RFC 3339 datetime string indicating when the Workspace was created.
 - `display_color` (String) Hex color code representing the Workspace in the Anthropic Console.
 - `id` (String) ID of the Workspace.
+
+<a id="nestedatt--data_residency"></a>
+### Nested Schema for `data_residency`
+
+Optional:
+
+- `allowed_inference_geos` (Attributes) Permitted inference geo values. (see [below for nested schema](#nestedatt--data_residency--allowed_inference_geos))
+- `default_inference_geo` (String) Default inference geo applied when requests omit the parameter.
+- `workspace_geo` (String) <i style="color:red;font-weight: bold">(ForceNew)</i> Geographic region for workspace data storage. Immutable after creation.
+
+<a id="nestedatt--data_residency--allowed_inference_geos"></a>
+### Nested Schema for `data_residency.allowed_inference_geos`
+
+Optional:
+
+- `unrestricted` (Boolean) All geos available for inference. Ensure that if an attribute is set, these are not set: "[<.values]".
+- `values` (Set of String) List of allowed inference geos. Ensure that if an attribute is set, these are not set: "[<.unrestricted]".
 
 ## Import
 
