@@ -2,33 +2,35 @@ package provider
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/jianyuan/terraform-provider-anthropic/internal/apiclient"
+	"github.com/jianyuan/terraform-provider-anthropic/internal/fwdiag"
+	supertypes "github.com/orange-cloudavenue/terraform-plugin-framework-supertypes"
+	"github.com/samber/lo"
 )
 
 type UsersDataSourceModel struct {
-	Users []UserDataSourceModel `tfsdk:"users"`
+	Users supertypes.SetNestedObjectValueOf[UserDataSourceModel] `tfsdk:"users"`
 }
 
-func (m *UsersDataSourceModel) Fill(users []apiclient.User) error {
-	m.Users = make([]UserDataSourceModel, len(users))
-	for i, u := range users {
-		if err := m.Users[i].Fill(u); err != nil {
-			return err
-		}
-	}
-
-	return nil
+func (m *UsersDataSourceModel) Fill(ctx context.Context, users []apiclient.User) (diags diag.Diagnostics) {
+	m.Users = supertypes.NewSetNestedObjectValueOfValueSlice(ctx, lo.Map(users, func(user apiclient.User, _ int) UserDataSourceModel {
+		var mm UserDataSourceModel
+		diags.Append(mm.Fill(ctx, user)...)
+		return mm
+	}))
+	return
 }
+
+var _ datasource.DataSource = &UsersDataSource{}
+var _ datasource.DataSourceWithConfigure = &UsersDataSource{}
 
 func NewUsersDataSource() datasource.DataSource {
 	return &UsersDataSource{}
 }
-
-var _ datasource.DataSource = &UsersDataSource{}
 
 type UsersDataSource struct {
 	baseDataSource
@@ -46,6 +48,7 @@ func (d *UsersDataSource) Schema(ctx context.Context, req datasource.SchemaReque
 			"users": schema.SetNestedAttribute{
 				MarkdownDescription: "List of users.",
 				Computed:            true,
+				CustomType:          supertypes.NewSetNestedObjectTypeOf[UserDataSourceModel](ctx),
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"id": schema.StringAttribute{
@@ -89,36 +92,25 @@ func (d *UsersDataSource) Read(ctx context.Context, req datasource.ReadRequest, 
 	}
 
 	for {
-		httpResp, err := d.client.ListUsersWithResponse(
+		page := fwdiag.Merge(apiclient.ReadJSON200(d.client.ListUsersWithResponse(
 			ctx,
 			params,
-		)
-		if err != nil {
-			resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to read, got error: %s", err))
+		)))(&resp.Diagnostics)
+		if resp.Diagnostics.HasError() {
 			return
 		}
 
-		if httpResp.StatusCode() != 200 {
-			resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to read, got status code: %d", httpResp.StatusCode()))
-			return
-		}
+		users = append(users, page.Data...)
 
-		if httpResp.JSON200 == nil {
-			resp.Diagnostics.AddError("Client Error", "Unable to read, got empty response body")
-			return
-		}
-
-		users = append(users, httpResp.JSON200.Data...)
-
-		if !httpResp.JSON200.HasMore || httpResp.JSON200.LastId.IsNull() || !httpResp.JSON200.LastId.IsSpecified() {
+		if !page.HasMore || page.LastId.IsNull() || !page.LastId.IsSpecified() {
 			break
 		}
 
-		params.AfterId = new(httpResp.JSON200.LastId.MustGet())
+		params.AfterId = new(page.LastId.MustGet())
 	}
 
-	if err := data.Fill(users); err != nil {
-		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to fill data, got error: %s", err))
+	resp.Diagnostics.Append(data.Fill(ctx, users)...)
+	if resp.Diagnostics.HasError() {
 		return
 	}
 

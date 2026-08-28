@@ -2,8 +2,6 @@ package provider
 
 import (
 	"context"
-	"fmt"
-	"net/http"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -14,17 +12,18 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/jianyuan/terraform-provider-anthropic/internal/apiclient"
+	"github.com/jianyuan/terraform-provider-anthropic/internal/fwdiag"
 	"github.com/jianyuan/terraform-provider-anthropic/internal/tfutils"
 	supertypes "github.com/orange-cloudavenue/terraform-plugin-framework-supertypes"
 )
 
-func NewOrganizationInviteResource() resource.Resource {
-	return &OrganizationInviteResource{}
-}
-
 var _ resource.Resource = &OrganizationInviteResource{}
 var _ resource.ResourceWithConfigure = &OrganizationInviteResource{}
 var _ resource.ResourceWithImportState = &OrganizationInviteResource{}
+
+func NewOrganizationInviteResource() resource.Resource {
+	return &OrganizationInviteResource{}
+}
 
 type OrganizationInviteResource struct {
 	baseResource
@@ -110,22 +109,15 @@ func (r *OrganizationInviteResource) Create(ctx context.Context, req resource.Cr
 		return
 	}
 
-	httpResp, err := r.client.CreateInviteWithResponse(
+	invite := fwdiag.Merge(apiclient.CreateJSON200(r.client.CreateInviteWithResponse(
 		ctx,
 		body,
-	)
-	if err != nil {
-		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to create invite, got error: %s", err))
-		return
-	} else if httpResp.StatusCode() != http.StatusOK {
-		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to create invite, got status code %d: %s", httpResp.StatusCode(), string(httpResp.Body)))
-		return
-	} else if httpResp.JSON200 == nil {
-		resp.Diagnostics.AddError("Client Error", "Unable to create invite, got empty response body")
+	)))(&resp.Diagnostics)
+	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	resp.Diagnostics.Append(data.Fill(ctx, *httpResp.JSON200)...)
+	resp.Diagnostics.Append(data.Fill(ctx, *invite)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -141,22 +133,15 @@ func (r *OrganizationInviteResource) Read(ctx context.Context, req resource.Read
 		return
 	}
 
-	httpResp, err := r.client.GetInviteWithResponse(ctx, data.Id.ValueString())
-	if err != nil {
-		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to read invite, got error: %s", err))
-		return
-	} else if httpResp.StatusCode() == http.StatusNotFound {
-		resp.State.RemoveResource(ctx)
-		return
-	} else if httpResp.StatusCode() != http.StatusOK {
-		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to read invite, got status code %d: %s", httpResp.StatusCode(), string(httpResp.Body)))
-		return
-	} else if httpResp.JSON200 == nil {
-		resp.Diagnostics.AddError("Client Error", "Unable to read invite, got empty response body")
+	invite := fwdiag.Merge(apiclient.ReadJSON200(r.client.GetInviteWithResponse(ctx, data.Id.ValueString())))(&resp.Diagnostics)
+	if resp.Diagnostics.HasError() {
+		if resp.Diagnostics.Contains(fwdiag.ErrorDiagnosticNotFound) {
+			resp.State.RemoveResource(ctx)
+		}
 		return
 	}
 
-	resp.Diagnostics.Append(data.Fill(ctx, *httpResp.JSON200)...)
+	resp.Diagnostics.Append(data.Fill(ctx, *invite)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -177,19 +162,10 @@ func (r *OrganizationInviteResource) Delete(ctx context.Context, req resource.De
 		return
 	}
 
-	httpResp, err := r.client.DeleteInviteWithResponse(
+	_ = fwdiag.Merge(apiclient.DeleteJSON200(r.client.DeleteInviteWithResponse(
 		ctx,
 		data.Id.ValueString(),
-	)
-	if err != nil {
-		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to delete invite, got error: %s", err))
-		return
-	} else if httpResp.StatusCode() == http.StatusNotFound {
-		return
-	} else if httpResp.StatusCode() != http.StatusOK {
-		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to delete invite, got status code %d: %s", httpResp.StatusCode(), string(httpResp.Body)))
-		return
-	}
+	)))(&resp.Diagnostics)
 }
 
 func (r *OrganizationInviteResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {

@@ -2,35 +2,37 @@ package provider
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/jianyuan/terraform-provider-anthropic/internal/apiclient"
+	"github.com/jianyuan/terraform-provider-anthropic/internal/fwdiag"
+	supertypes "github.com/orange-cloudavenue/terraform-plugin-framework-supertypes"
+	"github.com/samber/lo"
 )
 
 type WorkspaceMembersDataSourceModel struct {
-	Id      types.String           `tfsdk:"id"`
-	Members []WorkspaceMemberModel `tfsdk:"members"`
+	Id      types.String                                            `tfsdk:"id"`
+	Members supertypes.SetNestedObjectValueOf[WorkspaceMemberModel] `tfsdk:"members"`
 }
 
-func (m *WorkspaceMembersDataSourceModel) Fill(members []apiclient.WorkspaceMember) error {
-	m.Members = make([]WorkspaceMemberModel, len(members))
-	for i, u := range members {
-		if err := m.Members[i].Fill(u); err != nil {
-			return err
-		}
-	}
-
-	return nil
+func (m *WorkspaceMembersDataSourceModel) Fill(ctx context.Context, members []apiclient.WorkspaceMember) (diags diag.Diagnostics) {
+	m.Members = supertypes.NewSetNestedObjectValueOfValueSlice(ctx, lo.Map(members, func(member apiclient.WorkspaceMember, _ int) WorkspaceMemberModel {
+		var mm WorkspaceMemberModel
+		diags.Append(mm.Fill(ctx, member)...)
+		return mm
+	}))
+	return
 }
+
+var _ datasource.DataSource = &WorkspaceMembersDataSource{}
+var _ datasource.DataSourceWithConfigure = &WorkspaceMembersDataSource{}
 
 func NewWorkspaceMembersDataSource() datasource.DataSource {
 	return &WorkspaceMembersDataSource{}
 }
-
-var _ datasource.DataSource = &WorkspaceMembersDataSource{}
 
 type WorkspaceMembersDataSource struct {
 	baseDataSource
@@ -52,6 +54,7 @@ func (d *WorkspaceMembersDataSource) Schema(ctx context.Context, req datasource.
 			"members": schema.SetNestedAttribute{
 				MarkdownDescription: "List of members.",
 				Computed:            true,
+				CustomType:          supertypes.NewSetNestedObjectTypeOf[WorkspaceMemberModel](ctx),
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"workspace_id": schema.StringAttribute{
@@ -87,37 +90,26 @@ func (d *WorkspaceMembersDataSource) Read(ctx context.Context, req datasource.Re
 	}
 
 	for {
-		httpResp, err := d.client.ListWorkspaceMembersWithResponse(
+		page := fwdiag.Merge(apiclient.ReadJSON200(d.client.ListWorkspaceMembersWithResponse(
 			ctx,
 			data.Id.ValueString(),
 			params,
-		)
-		if err != nil {
-			resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to read, got error: %s", err))
+		)))(&resp.Diagnostics)
+		if resp.Diagnostics.HasError() {
 			return
 		}
 
-		if httpResp.StatusCode() != 200 {
-			resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to read, got status code: %d", httpResp.StatusCode()))
-			return
-		}
+		members = append(members, page.Data...)
 
-		if httpResp.JSON200 == nil {
-			resp.Diagnostics.AddError("Client Error", "Unable to read, got empty response body")
-			return
-		}
-
-		members = append(members, httpResp.JSON200.Data...)
-
-		if !httpResp.JSON200.HasMore || httpResp.JSON200.LastId.IsNull() || !httpResp.JSON200.LastId.IsSpecified() {
+		if !page.HasMore || page.LastId.IsNull() || !page.LastId.IsSpecified() {
 			break
 		}
 
-		params.AfterId = new(httpResp.JSON200.LastId.MustGet())
+		params.AfterId = new(page.LastId.MustGet())
 	}
 
-	if err := data.Fill(members); err != nil {
-		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to fill data, got error: %s", err))
+	resp.Diagnostics.Append(data.Fill(ctx, members)...)
+	if resp.Diagnostics.HasError() {
 		return
 	}
 

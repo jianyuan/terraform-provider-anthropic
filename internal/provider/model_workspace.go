@@ -1,6 +1,9 @@
 package provider
 
 import (
+	"context"
+
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/jianyuan/terraform-provider-anthropic/internal/apiclient"
 )
@@ -13,16 +16,16 @@ type WorkspaceModel struct {
 	DisplayColor types.String `tfsdk:"display_color"`
 }
 
-func (m *WorkspaceModel) Fill(w apiclient.Workspace) error {
-	m.Id = types.StringValue(w.Id)
-	m.Name = types.StringValue(w.Name)
-	m.CreatedAt = types.StringValue(w.CreatedAt)
-	if v, err := w.ArchivedAt.Get(); err == nil {
+func (m *WorkspaceModel) Fill(ctx context.Context, workspace apiclient.Workspace) (diags diag.Diagnostics) {
+	m.Id = types.StringValue(workspace.Id)
+	m.Name = types.StringValue(workspace.Name)
+	m.CreatedAt = types.StringValue(workspace.CreatedAt)
+	if v, err := workspace.ArchivedAt.Get(); err == nil {
 		m.ArchivedAt = types.StringValue(v)
 	} else {
 		m.ArchivedAt = types.StringNull()
 	}
-	m.DisplayColor = types.StringValue(w.DisplayColor)
+	m.DisplayColor = types.StringValue(workspace.DisplayColor)
 
-	return nil
+	return
 }

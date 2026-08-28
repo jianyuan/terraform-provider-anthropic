@@ -2,33 +2,35 @@ package provider
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/jianyuan/terraform-provider-anthropic/internal/apiclient"
+	"github.com/jianyuan/terraform-provider-anthropic/internal/fwdiag"
+	supertypes "github.com/orange-cloudavenue/terraform-plugin-framework-supertypes"
+	"github.com/samber/lo"
 )
 
 type WorkspacesDataSourceModel struct {
-	Workspaces []WorkspaceModel `tfsdk:"workspaces"`
+	Workspaces supertypes.SetNestedObjectValueOf[WorkspaceModel] `tfsdk:"workspaces"`
 }
 
-func (m *WorkspacesDataSourceModel) Fill(workspaces []apiclient.Workspace) error {
-	m.Workspaces = make([]WorkspaceModel, len(workspaces))
-	for i, u := range workspaces {
-		if err := m.Workspaces[i].Fill(u); err != nil {
-			return err
-		}
-	}
-
-	return nil
+func (m *WorkspacesDataSourceModel) Fill(ctx context.Context, workspaces []apiclient.Workspace) (diags diag.Diagnostics) {
+	m.Workspaces = supertypes.NewSetNestedObjectValueOfValueSlice(ctx, lo.Map(workspaces, func(workspace apiclient.Workspace, _ int) WorkspaceModel {
+		var mm WorkspaceModel
+		diags.Append(mm.Fill(ctx, workspace)...)
+		return mm
+	}))
+	return
 }
+
+var _ datasource.DataSource = &WorkspacesDataSource{}
+var _ datasource.DataSourceWithConfigure = &WorkspacesDataSource{}
 
 func NewWorkspacesDataSource() datasource.DataSource {
 	return &WorkspacesDataSource{}
 }
-
-var _ datasource.DataSource = &WorkspacesDataSource{}
 
 type WorkspacesDataSource struct {
 	baseDataSource
@@ -46,6 +48,7 @@ func (d *WorkspacesDataSource) Schema(ctx context.Context, req datasource.Schema
 			"workspaces": schema.SetNestedAttribute{
 				MarkdownDescription: "List of workspaces.",
 				Computed:            true,
+				CustomType:          supertypes.NewSetNestedObjectTypeOf[WorkspaceModel](ctx),
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"id": schema.StringAttribute{
@@ -89,36 +92,25 @@ func (d *WorkspacesDataSource) Read(ctx context.Context, req datasource.ReadRequ
 	}
 
 	for {
-		httpResp, err := d.client.ListWorkspacesWithResponse(
+		page := fwdiag.Merge(apiclient.ReadJSON200(d.client.ListWorkspacesWithResponse(
 			ctx,
 			params,
-		)
-		if err != nil {
-			resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to read, got error: %s", err))
+		)))(&resp.Diagnostics)
+		if resp.Diagnostics.HasError() {
 			return
 		}
 
-		if httpResp.StatusCode() != 200 {
-			resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to read, got status code: %d", httpResp.StatusCode()))
-			return
-		}
+		workspaces = append(workspaces, page.Data...)
 
-		if httpResp.JSON200 == nil {
-			resp.Diagnostics.AddError("Client Error", "Unable to read, got empty response body")
-			return
-		}
-
-		workspaces = append(workspaces, httpResp.JSON200.Data...)
-
-		if !httpResp.JSON200.HasMore || httpResp.JSON200.LastId.IsNull() || !httpResp.JSON200.LastId.IsSpecified() {
+		if !page.HasMore || page.LastId.IsNull() || !page.LastId.IsSpecified() {
 			break
 		}
 
-		params.AfterId = new(httpResp.JSON200.LastId.MustGet())
+		params.AfterId = new(page.LastId.MustGet())
 	}
 
-	if err := data.Fill(workspaces); err != nil {
-		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to fill data, got error: %s", err))
+	resp.Diagnostics.Append(data.Fill(ctx, workspaces)...)
+	if resp.Diagnostics.HasError() {
 		return
 	}
 

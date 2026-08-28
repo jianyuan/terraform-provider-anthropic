@@ -75,6 +75,7 @@ require (
 	github.com/oklog/run v1.2.0 // indirect
 	github.com/orange-cloudavenue/terraform-plugin-framework-supertypes v1.2.0 // indirect
 	github.com/posener/complete v1.2.3 // indirect
+	github.com/samber/lo v1.53.0 // indirect
 	github.com/santhosh-tekuri/jsonschema/v6 v6.0.2 // indirect
 	github.com/shopspring/decimal v1.3.1 // indirect
 	github.com/speakeasy-api/jsonpath v0.6.3 // indirect
