@@ -160,6 +160,7 @@ func (p *AnthropicProvider) DataSources(ctx context.Context) []func() datasource
 		NewOrganizationDataSource,
 		NewOrganizationInvitesDataSource,
 		NewServiceAccountDataSource,
+		NewServiceAccountsDataSource,
 		NewUserDataSource,
 		NewUsersDataSource,
 		NewWorkspaceDataSource,
