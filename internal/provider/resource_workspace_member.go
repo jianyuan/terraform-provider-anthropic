@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/jianyuan/terraform-provider-anthropic/internal/apiclient"
 	"github.com/jianyuan/terraform-provider-anthropic/internal/fwdiag"
+	"github.com/jianyuan/terraform-provider-anthropic/internal/fwtypes"
 )
 
 var _ resource.Resource = &WorkspaceMemberResource{}
@@ -114,7 +115,7 @@ func (r *WorkspaceMemberResource) Read(ctx context.Context, req resource.ReadReq
 			return fmt.Errorf("status code %d: %s", httpResp.StatusCode(), string(httpResp.Body))
 		} else if httpResp.JSON200 == nil {
 			return fmt.Errorf("empty response body")
-		} else if !data.WorkspaceRole.IsNull() && !data.WorkspaceRole.IsUnknown() && string(httpResp.JSON200.WorkspaceRole) != data.WorkspaceRole.ValueString() {
+		} else if fwtypes.IsKnown(data.WorkspaceRole) && string(httpResp.JSON200.WorkspaceRole) != data.WorkspaceRole.ValueString() {
 			return fmt.Errorf("unexpected workspace role: %s, expected: %s", httpResp.JSON200.WorkspaceRole, data.WorkspaceRole.ValueString())
 		}
 		return nil

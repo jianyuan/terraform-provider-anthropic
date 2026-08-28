@@ -60,11 +60,11 @@ func init() {
 					log.Printf("[INFO] Archived workspace %s", workspace.Id)
 				}
 
-				if !httpResp.JSON200.HasMore || httpResp.JSON200.LastId.IsNull() || !httpResp.JSON200.LastId.IsSpecified() {
+				if v, err := httpResp.JSON200.LastId.Get(); err == nil {
+					params.AfterId = new(v)
+				} else {
 					break
 				}
-
-				params.AfterId = new(httpResp.JSON200.LastId.MustGet())
 			}
 
 			return nil

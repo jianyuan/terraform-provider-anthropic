@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/jianyuan/terraform-provider-anthropic/internal/apiclient"
 	"github.com/jianyuan/terraform-provider-anthropic/internal/fwdiag"
+	"github.com/jianyuan/terraform-provider-anthropic/internal/fwtypes"
 	"github.com/jianyuan/terraform-provider-anthropic/internal/tfutils"
 	supertypes "github.com/orange-cloudavenue/terraform-plugin-framework-supertypes"
 )
@@ -102,7 +103,7 @@ func (r *OrganizationInviteResource) Create(ctx context.Context, req resource.Cr
 		Email: data.Email.ValueString(),
 		Role:  apiclient.CreateInviteRequestRole(data.Role.ValueString()),
 	}
-	if !data.RbacGroupIds.IsNull() && !data.RbacGroupIds.IsUnknown() {
+	if fwtypes.IsKnown(data.RbacGroupIds) {
 		body.RbacGroupIds = new(tfutils.MergeDiagnostics(data.RbacGroupIds.Get(ctx))(&resp.Diagnostics))
 	}
 	if resp.Diagnostics.HasError() {

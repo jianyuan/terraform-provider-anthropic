@@ -68,11 +68,11 @@ func (d *WorkspacesDataSource) Read(ctx context.Context, req datasource.ReadRequ
 
 		workspaces = append(workspaces, page.Data...)
 
-		if !page.HasMore || page.LastId.IsNull() || !page.LastId.IsSpecified() {
+		if v, err := page.LastId.Get(); err == nil {
+			params.AfterId = new(v)
+		} else {
 			break
 		}
-
-		params.AfterId = new(page.LastId.MustGet())
 	}
 
 	resp.Diagnostics.Append(data.FromAPI(ctx, workspaces)...)
