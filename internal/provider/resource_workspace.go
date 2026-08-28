@@ -62,9 +62,9 @@ func (r *WorkspaceResource) Create(ctx context.Context, req resource.CreateReque
 			AllowedInferenceGeos: &apiclient.CreateWorkspaceRequest_DataResidency_AllowedInferenceGeos{},
 		}
 		if !dr.AllowedInferenceGeos.IsNull() && !dr.AllowedInferenceGeos.IsUnknown() {
-			bodyDR.AllowedInferenceGeos.FromCreateWorkspaceRequestDataResidencyAllowedInferenceGeos0(fwdiag.Merge(dr.AllowedInferenceGeos.Get(ctx))(&resp.Diagnostics))
+			_ = bodyDR.AllowedInferenceGeos.FromCreateWorkspaceRequestDataResidencyAllowedInferenceGeos0(fwdiag.Merge(dr.AllowedInferenceGeos.Get(ctx))(&resp.Diagnostics))
 		} else if !dr.AllowedInferenceGeosUnrestricted.IsNull() && !dr.AllowedInferenceGeosUnrestricted.IsUnknown() {
-			bodyDR.AllowedInferenceGeos.FromCreateWorkspaceRequestDataResidencyAllowedInferenceGeos1(apiclient.CreateWorkspaceRequestDataResidencyAllowedInferenceGeos1Unrestricted)
+			_ = bodyDR.AllowedInferenceGeos.FromCreateWorkspaceRequestDataResidencyAllowedInferenceGeos1(apiclient.CreateWorkspaceRequestDataResidencyAllowedInferenceGeos1Unrestricted)
 		}
 		if !dr.DefaultInferenceGeo.IsNull() && !dr.DefaultInferenceGeo.IsUnknown() {
 			bodyDR.DefaultInferenceGeo.Set(apiclient.CreateWorkspaceRequestDataResidencyDefaultInferenceGeo(dr.DefaultInferenceGeo.ValueString()))
@@ -153,9 +153,9 @@ func (r *WorkspaceResource) Update(ctx context.Context, req resource.UpdateReque
 
 		var bodyDR apiclient.UpdateWorkspaceRequest_DataResidency
 		if !dr.AllowedInferenceGeos.IsNull() && !dr.AllowedInferenceGeos.IsUnknown() {
-			bodyDR.AllowedInferenceGeos.FromUpdateWorkspaceRequestDataResidencyAllowedInferenceGeos0(fwdiag.Merge(dr.AllowedInferenceGeos.Get(ctx))(&resp.Diagnostics))
+			_ = bodyDR.AllowedInferenceGeos.FromUpdateWorkspaceRequestDataResidencyAllowedInferenceGeos0(fwdiag.Merge(dr.AllowedInferenceGeos.Get(ctx))(&resp.Diagnostics))
 		} else if !dr.AllowedInferenceGeosUnrestricted.IsNull() && !dr.AllowedInferenceGeosUnrestricted.IsUnknown() {
-			bodyDR.AllowedInferenceGeos.FromUpdateWorkspaceRequestDataResidencyAllowedInferenceGeos1(apiclient.UpdateWorkspaceRequestDataResidencyAllowedInferenceGeos1Unrestricted)
+			_ = bodyDR.AllowedInferenceGeos.FromUpdateWorkspaceRequestDataResidencyAllowedInferenceGeos1(apiclient.UpdateWorkspaceRequestDataResidencyAllowedInferenceGeos1Unrestricted)
 		}
 		if !dr.DefaultInferenceGeo.IsNull() && !dr.DefaultInferenceGeo.IsUnknown() {
 			bodyDR.DefaultInferenceGeo.Set(apiclient.UpdateWorkspaceRequestDataResidencyDefaultInferenceGeo(dr.DefaultInferenceGeo.ValueString()))

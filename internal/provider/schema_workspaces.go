@@ -7,7 +7,9 @@ import (
 
 func workspacesSchema() superschema.Schema {
 	workspaceAttributes := workspaceSchema().Attributes
+	//nolint:forcetypeassert
 	workspaceAttributes["id"].(superschema.StringAttribute).DataSource.Required = false
+	//nolint:forcetypeassert
 	workspaceAttributes["id"].(superschema.StringAttribute).DataSource.Computed = true
 
 	return superschema.Schema{
