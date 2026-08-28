@@ -10,21 +10,29 @@ import (
 )
 
 type ServiceAccountModel struct {
-	Id               types.String `tfsdk:"id"`
-	Name             types.String `tfsdk:"name"`
-	Description      types.String `tfsdk:"description"`
-	OrganizationRole types.String `tfsdk:"organization_role"`
+	Id                types.String `tfsdk:"id"`
+	Name              types.String `tfsdk:"name"`
+	Description       types.String `tfsdk:"description"`
+	OrganizationRole  types.String `tfsdk:"organization_role"`
+	ArchivedAt        types.String `tfsdk:"archived_at"`
+	ArchivedByActorId types.String `tfsdk:"archived_by_actor_id"`
+	CreatedAt         types.String `tfsdk:"created_at"`
+	CreatedByActorId  types.String `tfsdk:"created_by_actor_id"`
+	UpdatedAt         types.String `tfsdk:"updated_at"`
+	UpdatedByActorId  types.String `tfsdk:"updated_by_actor_id"`
 }
 
 func (m *ServiceAccountModel) FromAPI(ctx context.Context, data apiclient.ServiceAccount) (diags diag.Diagnostics) {
 	m.Id = types.StringValue(data.Id)
 	m.Name = types.StringValue(data.Name)
-	if v, err := data.Description.Get(); err == nil {
-		m.Description = types.StringValue(v)
-	} else {
-		m.Description = types.StringNull()
-	}
+	m.Description = fwtypes.NullableStringValue(data.Description)
 	m.OrganizationRole = types.StringValue(string(data.OrganizationRole))
+	m.ArchivedAt = fwtypes.NullableStringValue(data.ArchivedAt)
+	m.ArchivedByActorId = fwtypes.NullableStringValue(data.ArchivedByActorId)
+	m.CreatedAt = types.StringValue(data.CreatedAt)
+	m.CreatedByActorId = fwtypes.NullableStringValue(data.CreatedByActorId)
+	m.UpdatedAt = types.StringValue(data.UpdatedAt)
+	m.UpdatedByActorId = fwtypes.NullableStringValue(data.UpdatedByActorId)
 	return
 }
 

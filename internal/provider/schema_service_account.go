@@ -73,6 +73,50 @@ func serviceAccountSchema() superschema.Schema {
 					Computed: true,
 				},
 			},
+			"archived_at": superschema.StringAttribute{
+				Common: &schemaR.StringAttribute{
+					MarkdownDescription: "If set, this service account is archived.",
+					Computed:            true,
+				},
+			},
+			"archived_by_actor_id": superschema.StringAttribute{
+				Common: &schemaR.StringAttribute{
+					MarkdownDescription: "Tagged ID (`user_`/`svac_`) of the actor that archived this service account.",
+					Computed:            true,
+					PlanModifiers: []planmodifier.String{
+						stringplanmodifier.UseStateForUnknown(),
+					},
+				},
+			}, "created_at": superschema.StringAttribute{
+				Common: &schemaR.StringAttribute{
+					MarkdownDescription: "When this service account was created.",
+					Computed:            true,
+					PlanModifiers: []planmodifier.String{
+						stringplanmodifier.UseStateForUnknown(),
+					},
+				},
+			},
+			"created_by_actor_id": superschema.StringAttribute{
+				Common: &schemaR.StringAttribute{
+					MarkdownDescription: "Tagged ID (`user_`/`svac_`) of the actor that created this service account.",
+					Computed:            true,
+					PlanModifiers: []planmodifier.String{
+						stringplanmodifier.UseStateForUnknown(),
+					},
+				},
+			},
+			"updated_at": superschema.StringAttribute{
+				Common: &schemaR.StringAttribute{
+					MarkdownDescription: "When this service account was last updated.",
+					Computed:            true,
+				},
+			},
+			"updated_by_actor_id": superschema.StringAttribute{
+				Common: &schemaR.StringAttribute{
+					MarkdownDescription: "Tagged ID (`user_`/`svac_`) of the actor that last updated this service account.",
+					Computed:            true,
+				},
+			},
 		},
 	}
 }

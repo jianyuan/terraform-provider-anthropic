@@ -6,6 +6,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/jianyuan/terraform-provider-anthropic/internal/apiclient"
+	"github.com/jianyuan/terraform-provider-anthropic/internal/fwtypes"
 	supertypes "github.com/orange-cloudavenue/terraform-plugin-framework-supertypes"
 )
 
@@ -30,11 +31,7 @@ func (m *OrganizationInviteModel) Fill(ctx context.Context, data apiclient.Invit
 		m.RbacGroupIds = supertypes.NewSetValueOfSlice(ctx, data.RbacGroupIds)
 	}
 	m.Status = types.StringValue(string(data.Status))
-	if v, err := data.AcceptedAt.Get(); err == nil {
-		m.AcceptedAt = types.StringValue(v)
-	} else {
-		m.AcceptedAt = types.StringNull()
-	}
+	m.AcceptedAt = fwtypes.NullableStringValue(data.AcceptedAt)
 	m.InvitedAt = types.StringValue(data.InvitedAt)
 	m.ExpiresAt = types.StringValue(data.ExpiresAt)
 	return
