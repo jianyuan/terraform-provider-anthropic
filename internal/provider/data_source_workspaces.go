@@ -71,6 +71,10 @@ func (d *WorkspacesDataSource) Schema(ctx context.Context, req datasource.Schema
 							MarkdownDescription: "Hex color code representing the Workspace in the Anthropic Console.",
 							Computed:            true,
 						},
+						"compartment_id": schema.StringAttribute{
+							MarkdownDescription: "Identifier for this Workspace's encryption compartment.",
+							Computed:            true,
+						},
 					},
 				},
 			},

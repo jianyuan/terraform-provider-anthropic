@@ -5,9 +5,6 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/jianyuan/terraform-provider-anthropic/internal/apiclient"
 	"github.com/jianyuan/terraform-provider-anthropic/internal/fwdiag"
 )
@@ -29,35 +26,7 @@ func (r *WorkspaceResource) Metadata(ctx context.Context, req resource.MetadataR
 }
 
 func (r *WorkspaceResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
-	resp.Schema = schema.Schema{
-		MarkdownDescription: "Workspace resource.",
-
-		Attributes: map[string]schema.Attribute{
-			"id": schema.StringAttribute{
-				MarkdownDescription: "ID of the Workspace.",
-				Computed:            true,
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.UseStateForUnknown(),
-				},
-			},
-			"name": schema.StringAttribute{
-				MarkdownDescription: "Name of the Workspace.",
-				Required:            true,
-			},
-			"created_at": schema.StringAttribute{
-				MarkdownDescription: "RFC 3339 datetime string indicating when the Workspace was created.",
-				Computed:            true,
-			},
-			"archived_at": schema.StringAttribute{
-				MarkdownDescription: "RFC 3339 datetime string indicating when the Workspace was archived, or null if the Workspace is not archived.",
-				Computed:            true,
-			},
-			"display_color": schema.StringAttribute{
-				MarkdownDescription: "Hex color code representing the Workspace in the Anthropic Console.",
-				Computed:            true,
-			},
-		},
-	}
+	resp.Schema = workspaceSchema().GetResource(ctx)
 }
 
 func (r *WorkspaceResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
@@ -68,12 +37,57 @@ func (r *WorkspaceResource) Create(ctx context.Context, req resource.CreateReque
 		return
 	}
 
+	body := apiclient.CreateWorkspaceJSONRequestBody{
+		Name: data.Name.ValueString(),
+	}
+	if !data.ExternalKeyId.IsNull() && !data.ExternalKeyId.IsUnknown() {
+		body.ExternalKeyId.Set(data.ExternalKeyId.ValueString())
+	} else {
+		body.ExternalKeyId.SetUnspecified()
+	}
+
+	if !data.Tags.IsNull() && !data.Tags.IsUnknown() {
+		body.Tags.Set(fwdiag.Merge(data.Tags.Get(ctx))(&resp.Diagnostics))
+	} else {
+		body.Tags.SetUnspecified()
+	}
+
+	if !data.DataResidency.IsNull() && !data.DataResidency.IsUnknown() {
+		dr := fwdiag.Merge(data.DataResidency.Get(ctx))(&resp.Diagnostics)
+		if resp.Diagnostics.HasError() {
+			return
+		}
+
+		var bodyDR apiclient.CreateWorkspaceRequest_DataResidency
+		if !dr.AllowedInferenceGeos.IsNull() && !dr.AllowedInferenceGeos.IsUnknown() {
+			bodyDR.AllowedInferenceGeos.FromCreateWorkspaceRequestDataResidencyAllowedInferenceGeos0(fwdiag.Merge(dr.AllowedInferenceGeos.Get(ctx))(&resp.Diagnostics))
+		} else if !dr.AllowedInferenceGeosUnrestricted.IsNull() && !dr.AllowedInferenceGeosUnrestricted.IsUnknown() {
+			bodyDR.AllowedInferenceGeos.FromCreateWorkspaceRequestDataResidencyAllowedInferenceGeos1(apiclient.CreateWorkspaceRequestDataResidencyAllowedInferenceGeos1Unrestricted)
+		}
+		if !dr.DefaultInferenceGeo.IsNull() && !dr.DefaultInferenceGeo.IsUnknown() {
+			bodyDR.DefaultInferenceGeo.Set(apiclient.CreateWorkspaceRequestDataResidencyDefaultInferenceGeo(dr.DefaultInferenceGeo.ValueString()))
+		} else {
+			bodyDR.DefaultInferenceGeo.SetUnspecified()
+		}
+		if !dr.WorkspaceGeo.IsNull() && !dr.WorkspaceGeo.IsUnknown() {
+			bodyDR.WorkspaceGeo.Set(apiclient.CreateWorkspaceRequestDataResidencyWorkspaceGeo(dr.WorkspaceGeo.ValueString()))
+		} else {
+			bodyDR.WorkspaceGeo.SetUnspecified()
+		}
+
+		body.DataResidency.Set(bodyDR)
+	} else {
+		body.DataResidency.SetUnspecified()
+	}
+
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
 	workspace := fwdiag.Merge(apiclient.CreateJSON200(r.client.CreateWorkspaceWithResponse(
 		ctx,
 		nil,
-		apiclient.CreateWorkspaceJSONRequestBody{
-			Name: data.Name.ValueString(),
-		},
+		body,
 	)))(&resp.Diagnostics)
 	if resp.Diagnostics.HasError() {
 		return
@@ -119,12 +133,41 @@ func (r *WorkspaceResource) Update(ctx context.Context, req resource.UpdateReque
 		return
 	}
 
+	body := apiclient.UpdateWorkspaceJSONRequestBody{
+		Name: data.Name.ValueStringPointer(),
+	}
+
+	if !data.Tags.IsNull() && !data.Tags.IsUnknown() {
+		body.Tags.Set(fwdiag.Merge(data.Tags.Get(ctx))(&resp.Diagnostics))
+	} else {
+		body.Tags.SetUnspecified()
+	}
+
+	if !data.DataResidency.IsNull() && !data.DataResidency.IsUnknown() {
+		dr := fwdiag.Merge(data.DataResidency.Get(ctx))(&resp.Diagnostics)
+		if resp.Diagnostics.HasError() {
+			return
+		}
+
+		var bodyDR apiclient.UpdateWorkspaceRequest_DataResidency
+		if !dr.AllowedInferenceGeos.IsNull() && !dr.AllowedInferenceGeos.IsUnknown() {
+			bodyDR.AllowedInferenceGeos.FromUpdateWorkspaceRequestDataResidencyAllowedInferenceGeos0(fwdiag.Merge(dr.AllowedInferenceGeos.Get(ctx))(&resp.Diagnostics))
+		} else if !dr.AllowedInferenceGeosUnrestricted.IsNull() && !dr.AllowedInferenceGeosUnrestricted.IsUnknown() {
+			bodyDR.AllowedInferenceGeos.FromUpdateWorkspaceRequestDataResidencyAllowedInferenceGeos1(apiclient.UpdateWorkspaceRequestDataResidencyAllowedInferenceGeos1Unrestricted)
+		}
+		if !dr.DefaultInferenceGeo.IsNull() && !dr.DefaultInferenceGeo.IsUnknown() {
+			bodyDR.DefaultInferenceGeo.Set(apiclient.UpdateWorkspaceRequestDataResidencyDefaultInferenceGeo(dr.DefaultInferenceGeo.ValueString()))
+		}
+
+		body.DataResidency.Set(bodyDR)
+	} else {
+		body.DataResidency.SetUnspecified()
+	}
+
 	workspace := fwdiag.Merge(apiclient.UpdateJSON200(r.client.UpdateWorkspaceWithResponse(
 		ctx,
 		data.Id.ValueString(),
-		apiclient.UpdateWorkspaceJSONRequestBody{
-			Name: data.Name.ValueStringPointer(),
-		},
+		body,
 	)))(&resp.Diagnostics)
 	if resp.Diagnostics.HasError() {
 		return

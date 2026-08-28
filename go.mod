@@ -54,6 +54,7 @@ require (
 	github.com/hashicorp/terraform-exec v0.25.1 // indirect
 	github.com/hashicorp/terraform-json v0.27.3-0.20260213134036-298b8f6b673a // indirect
 	github.com/hashicorp/terraform-plugin-docs v0.25.0 // indirect
+	github.com/hashicorp/terraform-plugin-framework-timeouts v0.7.0 // indirect
 	github.com/hashicorp/terraform-plugin-log v0.11.0 // indirect
 	github.com/hashicorp/terraform-registry-address v0.5.0 // indirect
 	github.com/hashicorp/terraform-svchost v0.2.1 // indirect
@@ -73,6 +74,7 @@ require (
 	github.com/oasdiff/yaml v0.1.1 // indirect
 	github.com/oasdiff/yaml3 v0.0.14 // indirect
 	github.com/oklog/run v1.2.0 // indirect
+	github.com/orange-cloudavenue/terraform-plugin-framework-superschema v1.12.0 // indirect
 	github.com/orange-cloudavenue/terraform-plugin-framework-supertypes v1.2.0 // indirect
 	github.com/posener/complete v1.2.3 // indirect
 	github.com/samber/lo v1.53.0 // indirect
