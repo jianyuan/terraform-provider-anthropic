@@ -46,6 +46,7 @@ func (r *WorkspaceResource) Create(ctx context.Context, req resource.CreateReque
 		ctx,
 		nil,
 		*body,
+		r.WithApiKeyRequestEditorFn(),
 	)))(&resp.Diagnostics)
 	if resp.Diagnostics.HasError() {
 		return
@@ -70,6 +71,7 @@ func (r *WorkspaceResource) Read(ctx context.Context, req resource.ReadRequest, 
 	workspace := fwdiag.Merge(apiclient.ReadJSON200(r.client.GetWorkspaceWithResponse(
 		ctx,
 		data.Id.ValueString(),
+		r.WithApiKeyRequestEditorFn(),
 	)))(&resp.Diagnostics)
 	if resp.Diagnostics.HasError() {
 		return
@@ -100,6 +102,7 @@ func (r *WorkspaceResource) Update(ctx context.Context, req resource.UpdateReque
 		ctx,
 		data.Id.ValueString(),
 		*body,
+		r.WithApiKeyRequestEditorFn(),
 	)))(&resp.Diagnostics)
 	if resp.Diagnostics.HasError() {
 		return
@@ -124,6 +127,7 @@ func (r *WorkspaceResource) Delete(ctx context.Context, req resource.DeleteReque
 	_ = fwdiag.Merge(apiclient.DeleteJSON200(r.client.ArchiveWorkspaceWithResponse(
 		ctx,
 		data.Id.ValueString(),
+		r.WithApiKeyRequestEditorFn(),
 	)))(&resp.Diagnostics)
 }
 

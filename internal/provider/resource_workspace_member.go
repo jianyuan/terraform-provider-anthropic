@@ -73,6 +73,7 @@ func (r *WorkspaceMemberResource) Create(ctx context.Context, req resource.Creat
 		ctx,
 		data.WorkspaceId.ValueString(),
 		body,
+		r.WithApiKeyRequestEditorFn(),
 	)))(&resp.Diagnostics)
 	if resp.Diagnostics.HasError() {
 		return
@@ -105,6 +106,7 @@ func (r *WorkspaceMemberResource) Read(ctx context.Context, req resource.ReadReq
 			ctx,
 			data.WorkspaceId.ValueString(),
 			data.UserId.ValueString(),
+			r.WithApiKeyRequestEditorFn(),
 		)
 		if err != nil {
 			return err
@@ -141,13 +143,16 @@ func (r *WorkspaceMemberResource) Update(ctx context.Context, req resource.Updat
 		return
 	}
 
+	body := apiclient.UpdateWorkspaceMemberJSONRequestBody{
+		WorkspaceRole: apiclient.UpdateWorkspaceMemberRequestWorkspaceRole(data.WorkspaceRole.ValueString()),
+	}
+
 	member := fwdiag.Merge(apiclient.UpdateJSON200(r.client.UpdateWorkspaceMemberWithResponse(
 		ctx,
 		data.WorkspaceId.ValueString(),
 		data.UserId.ValueString(),
-		apiclient.UpdateWorkspaceMemberJSONRequestBody{
-			WorkspaceRole: apiclient.UpdateWorkspaceMemberRequestWorkspaceRole(data.WorkspaceRole.ValueString()),
-		},
+		body,
+		r.WithApiKeyRequestEditorFn(),
 	)))(&resp.Diagnostics)
 	if resp.Diagnostics.HasError() {
 		return
@@ -173,6 +178,7 @@ func (r *WorkspaceMemberResource) Delete(ctx context.Context, req resource.Delet
 		ctx,
 		data.WorkspaceId.ValueString(),
 		data.UserId.ValueString(),
+		r.WithApiKeyRequestEditorFn(),
 	)))(&resp.Diagnostics)
 }
 

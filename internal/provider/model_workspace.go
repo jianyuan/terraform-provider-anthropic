@@ -28,11 +28,7 @@ func (m *WorkspaceModel) FromAPI(ctx context.Context, data apiclient.Workspace) 
 	m.Id = types.StringValue(data.Id)
 	m.Name = types.StringValue(data.Name)
 	m.CreatedAt = types.StringValue(data.CreatedAt)
-	if v, err := data.ArchivedAt.Get(); err == nil {
-		m.ArchivedAt = types.StringValue(v)
-	} else {
-		m.ArchivedAt = types.StringNull()
-	}
+	m.ArchivedAt = fwtypes.NullableStringValue(data.ArchivedAt)
 	m.DisplayColor = types.StringValue(data.DisplayColor)
 	m.CompartmentId = types.StringValue(data.CompartmentId)
 	m.DataResidency = (func() supertypes.SingleNestedObjectValueOf[WorkspaceModelDataResidency] {
@@ -40,11 +36,7 @@ func (m *WorkspaceModel) FromAPI(ctx context.Context, data apiclient.Workspace) 
 		diags.Append(mm.FromAPI(ctx, data.DataResidency)...)
 		return supertypes.NewSingleNestedObjectValueOf(ctx, &mm)
 	})()
-	if v, err := data.ExternalKeyId.Get(); err == nil {
-		m.ExternalKeyId = types.StringValue(v)
-	} else {
-		m.ExternalKeyId = types.StringNull()
-	}
+	m.ExternalKeyId = fwtypes.NullableStringValue(data.ExternalKeyId)
 	m.Tags = fwdiag.Merge(supertypes.NewMapValueOfMap(ctx, data.Tags))(&diags)
 	return
 }

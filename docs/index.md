@@ -49,4 +49,5 @@ resource "anthropic_workspace_member" "example" {
 ### Optional
 
 - `api_key` (String, Sensitive) The Admin API key for authentication. Get this from the [Anthropic console](https://console.anthropic.com/settings/admin-keys). It can be sourced from the `ANTHROPIC_API_KEY` environment variable.
+- `auth_token` (String, Sensitive) The OAuth bearer token for authentication. Log in with the `ant` CLI under a dedicated profile with the `org:admin` scope (see [Admin access](https://platform.claude.com/docs/en/cli-sdks-libraries/cli/authentication#admin-access)), then export the bearer token It can be sourced from the `ANTHROPIC_AUTH_TOKEN` environment variable.
 - `base_url` (String) API endpoint for the Anthropic service. Defaults to `https://api.anthropic.com`. It can be sourced from the `ANTHROPIC_BASE_URL` environment variable.

@@ -4,6 +4,7 @@ import (
 	"context"
 	"net/http"
 	"os"
+	"strings"
 
 	"github.com/hashicorp/go-retryablehttp"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
@@ -14,6 +15,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/logging"
 	"github.com/jianyuan/terraform-provider-anthropic/internal/apiclient"
+	"github.com/jianyuan/terraform-provider-anthropic/internal/providerdata"
 )
 
 // Ensure AnthropicProvider satisfies various provider interfaces.
@@ -30,8 +32,9 @@ type AnthropicProvider struct {
 
 // AnthropicProviderModel describes the provider data model.
 type AnthropicProviderModel struct {
-	BaseUrl types.String `tfsdk:"base_url"`
-	ApiKey  types.String `tfsdk:"api_key"`
+	BaseUrl   types.String `tfsdk:"base_url"`
+	ApiKey    types.String `tfsdk:"api_key"`
+	AuthToken types.String `tfsdk:"auth_token"`
 }
 
 func (p *AnthropicProvider) Metadata(ctx context.Context, req provider.MetadataRequest, resp *provider.MetadataResponse) {
@@ -49,6 +52,11 @@ func (p *AnthropicProvider) Schema(ctx context.Context, req provider.SchemaReque
 			},
 			"api_key": schema.StringAttribute{
 				MarkdownDescription: "The Admin API key for authentication. Get this from the [Anthropic console](https://console.anthropic.com/settings/admin-keys). It can be sourced from the `ANTHROPIC_API_KEY` environment variable.",
+				Optional:            true,
+				Sensitive:           true,
+			},
+			"auth_token": schema.StringAttribute{
+				MarkdownDescription: "The OAuth bearer token for authentication. Log in with the `ant` CLI under a dedicated profile with the `org:admin` scope (see [Admin access](https://platform.claude.com/docs/en/cli-sdks-libraries/cli/authentication#admin-access)), then export the bearer token It can be sourced from the `ANTHROPIC_AUTH_TOKEN` environment variable.",
 				Optional:            true,
 				Sensitive:           true,
 			},
@@ -80,13 +88,25 @@ func (p *AnthropicProvider) Configure(ctx context.Context, req provider.Configur
 		apiKey = v
 	}
 
-	if baseUrl == "" {
-		resp.Diagnostics.AddError("base_url is required", "base_url is required")
+	if apiKey != "" && !strings.HasPrefix(apiKey, "sk-ant-admin") {
+		resp.Diagnostics.AddError("api_key is invalid", "api_key is invalid. It must start with 'sk-ant-admin'.")
 		return
 	}
 
-	if apiKey == "" {
-		resp.Diagnostics.AddError("api_key is required", "api_key is required")
+	var authToken string
+	if !data.AuthToken.IsNull() {
+		authToken = data.AuthToken.ValueString()
+	} else if v := os.Getenv("ANTHROPIC_AUTH_TOKEN"); v != "" {
+		authToken = v
+	}
+
+	if authToken != "" && !strings.HasPrefix(authToken, "sk-ant-oat") {
+		resp.Diagnostics.AddError("auth_token is invalid", "auth_token is invalid. It must start with 'sk-ant-oat'.")
+		return
+	}
+
+	if baseUrl == "" {
+		resp.Diagnostics.AddError("base_url is required", "base_url is required")
 		return
 	}
 
@@ -108,7 +128,6 @@ func (p *AnthropicProvider) Configure(ctx context.Context, req provider.Configur
 		apiclient.WithHTTPClient(&http.Client{Transport: transport}),
 		apiclient.WithRequestEditorFn(func(ctx context.Context, req *http.Request) error {
 			req.Header.Set("anthropic-version", "2023-06-01")
-			req.Header.Set("x-api-key", apiKey)
 			return nil
 		}),
 	)
@@ -117,13 +136,20 @@ func (p *AnthropicProvider) Configure(ctx context.Context, req provider.Configur
 		return
 	}
 
-	resp.DataSourceData = client
-	resp.ResourceData = client
+	providerData := &providerdata.ProviderData{
+		ApiKey:    apiKey,
+		AuthToken: authToken,
+		Client:    client,
+	}
+
+	resp.DataSourceData = providerData
+	resp.ResourceData = providerData
 }
 
 func (p *AnthropicProvider) Resources(ctx context.Context) []func() resource.Resource {
 	return []func() resource.Resource{
 		NewOrganizationInviteResource,
+		NewServiceAccountResource,
 		NewWorkspaceMemberResource,
 		NewWorkspaceResource,
 	}
