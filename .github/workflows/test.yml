@@ -80,6 +80,7 @@ jobs:
       - env:
           TF_ACC: "1"
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          ANTHROPIC_AUTH_TOKEN: ${{ secrets.ANTHROPIC_AUTH_TOKEN }}
           ANTHROPIC_TEST_USER_ID: ${{ secrets.ANTHROPIC_TEST_USER_ID }}
         run: go test -v -cover ./internal/provider/
         timeout-minutes: 10
