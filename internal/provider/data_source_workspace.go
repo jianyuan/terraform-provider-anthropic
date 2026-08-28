@@ -2,17 +2,19 @@ package provider
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
+	"github.com/jianyuan/terraform-provider-anthropic/internal/apiclient"
+	"github.com/jianyuan/terraform-provider-anthropic/internal/fwdiag"
 )
+
+var _ datasource.DataSource = &WorkspaceDataSource{}
+var _ datasource.DataSourceWithConfigure = &WorkspaceDataSource{}
 
 func NewWorkspaceDataSource() datasource.DataSource {
 	return &WorkspaceDataSource{}
 }
-
-var _ datasource.DataSource = &WorkspaceDataSource{}
 
 type WorkspaceDataSource struct {
 	baseDataSource
@@ -59,27 +61,16 @@ func (d *WorkspaceDataSource) Read(ctx context.Context, req datasource.ReadReque
 		return
 	}
 
-	httpResp, err := d.client.GetWorkspaceWithResponse(
+	workspace := fwdiag.Merge(apiclient.ReadJSON200(d.client.GetWorkspaceWithResponse(
 		ctx,
 		data.Id.ValueString(),
-	)
-	if err != nil {
-		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to read, got error: %s", err))
+	)))(&resp.Diagnostics)
+	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	if httpResp.StatusCode() != 200 {
-		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to read, got status code: %d", httpResp.StatusCode()))
-		return
-	}
-
-	if httpResp.JSON200 == nil {
-		resp.Diagnostics.AddError("Client Error", "Unable to read, got empty response body")
-		return
-	}
-
-	if err := data.Fill(*httpResp.JSON200); err != nil {
-		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to fill data, got error: %s", err))
+	resp.Diagnostics.Append(data.Fill(ctx, *workspace)...)
+	if resp.Diagnostics.HasError() {
 		return
 	}
 

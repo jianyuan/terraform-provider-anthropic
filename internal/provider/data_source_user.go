@@ -2,12 +2,13 @@ package provider
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/jianyuan/terraform-provider-anthropic/internal/apiclient"
+	"github.com/jianyuan/terraform-provider-anthropic/internal/fwdiag"
 )
 
 type UserDataSourceModel struct {
@@ -18,21 +19,21 @@ type UserDataSourceModel struct {
 	AddedAt types.String `tfsdk:"added_at"`
 }
 
-func (m *UserDataSourceModel) Fill(u apiclient.User) error {
-	m.Id = types.StringValue(u.Id)
-	m.Email = types.StringValue(u.Email)
-	m.Name = types.StringValue(u.Name)
-	m.Role = types.StringValue(string(u.Role))
-	m.AddedAt = types.StringValue(u.AddedAt)
-
-	return nil
+func (m *UserDataSourceModel) Fill(ctx context.Context, data apiclient.User) (diags diag.Diagnostics) {
+	m.Id = types.StringValue(data.Id)
+	m.Email = types.StringValue(data.Email)
+	m.Name = types.StringValue(data.Name)
+	m.Role = types.StringValue(string(data.Role))
+	m.AddedAt = types.StringValue(data.AddedAt)
+	return
 }
+
+var _ datasource.DataSource = &UserDataSource{}
+var _ datasource.DataSourceWithConfigure = &UserDataSource{}
 
 func NewUserDataSource() datasource.DataSource {
 	return &UserDataSource{}
 }
-
-var _ datasource.DataSource = &UserDataSource{}
 
 type UserDataSource struct {
 	baseDataSource
@@ -79,27 +80,16 @@ func (d *UserDataSource) Read(ctx context.Context, req datasource.ReadRequest, r
 		return
 	}
 
-	httpResp, err := d.client.GetUserWithResponse(
+	user := fwdiag.Merge(apiclient.ReadJSON200(d.client.GetUserWithResponse(
 		ctx,
 		data.Id.ValueString(),
-	)
-	if err != nil {
-		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to read, got error: %s", err))
+	)))(&resp.Diagnostics)
+	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	if httpResp.StatusCode() != 200 {
-		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to read, got status code: %d", httpResp.StatusCode()))
-		return
-	}
-
-	if httpResp.JSON200 == nil {
-		resp.Diagnostics.AddError("Client Error", "Unable to read, got empty response body")
-		return
-	}
-
-	if err := data.Fill(*httpResp.JSON200); err != nil {
-		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to fill data, got error: %s", err))
+	resp.Diagnostics.Append(data.Fill(ctx, *user)...)
+	if resp.Diagnostics.HasError() {
 		return
 	}
 

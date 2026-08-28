@@ -2,14 +2,13 @@ package provider
 
 import (
 	"context"
-	"fmt"
-	"net/http"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/jianyuan/terraform-provider-anthropic/internal/apiclient"
+	"github.com/jianyuan/terraform-provider-anthropic/internal/fwdiag"
 )
 
 type OrganizationDataSourceModel struct {
@@ -63,19 +62,12 @@ func (d *OrganizationDataSource) Read(ctx context.Context, req datasource.ReadRe
 		return
 	}
 
-	httpResp, err := d.client.GetCurrentOrganizationWithResponse(ctx)
-	if err != nil {
-		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to read organization, got error: %s", err))
-		return
-	} else if httpResp.StatusCode() != http.StatusOK {
-		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to read organization, got status code: %d", httpResp.StatusCode()))
-		return
-	} else if httpResp.JSON200 == nil {
-		resp.Diagnostics.AddError("Client Error", "Unable to read organization, got empty response body")
+	org := fwdiag.Merge(apiclient.ReadJSON200(d.client.GetCurrentOrganizationWithResponse(ctx)))(&resp.Diagnostics)
+	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	resp.Diagnostics.Append(data.Fill(*httpResp.JSON200)...)
+	resp.Diagnostics.Append(data.Fill(*org)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}

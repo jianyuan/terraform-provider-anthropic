@@ -13,14 +13,16 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/jianyuan/terraform-provider-anthropic/internal/apiclient"
+	"github.com/jianyuan/terraform-provider-anthropic/internal/fwdiag"
 )
+
+var _ resource.Resource = &WorkspaceMemberResource{}
+var _ resource.ResourceWithConfigure = &WorkspaceMemberResource{}
+var _ resource.ResourceWithImportState = &WorkspaceMemberResource{}
 
 func NewWorkspaceMemberResource() resource.Resource {
 	return &WorkspaceMemberResource{}
 }
-
-var _ resource.Resource = &WorkspaceMemberResource{}
-var _ resource.ResourceWithImportState = &WorkspaceMemberResource{}
 
 type WorkspaceMemberResource struct {
 	baseResource
@@ -62,31 +64,22 @@ func (r *WorkspaceMemberResource) Create(ctx context.Context, req resource.Creat
 		return
 	}
 
-	httpResp, err := r.client.CreateWorkspaceMemberWithResponse(
+	body := apiclient.CreateWorkspaceMemberJSONRequestBody{
+		UserId:        data.UserId.ValueString(),
+		WorkspaceRole: apiclient.CreateWorkspaceMemberRequestWorkspaceRole(data.WorkspaceRole.ValueString()),
+	}
+
+	member := fwdiag.Merge(apiclient.CreateJSON200(r.client.CreateWorkspaceMemberWithResponse(
 		ctx,
 		data.WorkspaceId.ValueString(),
-		apiclient.CreateWorkspaceMemberJSONRequestBody{
-			UserId:        data.UserId.ValueString(),
-			WorkspaceRole: apiclient.CreateWorkspaceMemberRequestWorkspaceRole(data.WorkspaceRole.ValueString()),
-		},
-	)
-	if err != nil {
-		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to create, got error: %s", err))
+		body,
+	)))(&resp.Diagnostics)
+	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	if httpResp.StatusCode() != http.StatusOK {
-		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to create, got status code %d: %s", httpResp.StatusCode(), string(httpResp.Body)))
-		return
-	}
-
-	if httpResp.JSON200 == nil {
-		resp.Diagnostics.AddError("Client Error", "Unable to create, got empty response body")
-		return
-	}
-
-	if err := data.Fill(*httpResp.JSON200); err != nil {
-		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to fill data: %s", err))
+	resp.Diagnostics.Append(data.Fill(ctx, *member)...)
+	if resp.Diagnostics.HasError() {
 		return
 	}
 
@@ -132,8 +125,8 @@ func (r *WorkspaceMemberResource) Read(ctx context.Context, req resource.ReadReq
 		return
 	}
 
-	if err := data.Fill(*httpResp.JSON200); err != nil {
-		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to fill data: %s", err))
+	resp.Diagnostics.Append(data.Fill(ctx, *httpResp.JSON200)...)
+	if resp.Diagnostics.HasError() {
 		return
 	}
 
@@ -148,31 +141,20 @@ func (r *WorkspaceMemberResource) Update(ctx context.Context, req resource.Updat
 		return
 	}
 
-	httpResp, err := r.client.UpdateWorkspaceMemberWithResponse(
+	member := fwdiag.Merge(apiclient.UpdateJSON200(r.client.UpdateWorkspaceMemberWithResponse(
 		ctx,
 		data.WorkspaceId.ValueString(),
 		data.UserId.ValueString(),
 		apiclient.UpdateWorkspaceMemberJSONRequestBody{
 			WorkspaceRole: apiclient.UpdateWorkspaceMemberRequestWorkspaceRole(data.WorkspaceRole.ValueString()),
 		},
-	)
-	if err != nil {
-		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to update, got error: %s", err))
+	)))(&resp.Diagnostics)
+	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	if httpResp.StatusCode() != http.StatusOK {
-		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to update, got status code %d: %s", httpResp.StatusCode(), string(httpResp.Body)))
-		return
-	}
-
-	if httpResp.JSON200 == nil {
-		resp.Diagnostics.AddError("Client Error", "Unable to update, got empty response body")
-		return
-	}
-
-	if err := data.Fill(*httpResp.JSON200); err != nil {
-		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to fill data: %s", err))
+	resp.Diagnostics.Append(data.Fill(ctx, *member)...)
+	if resp.Diagnostics.HasError() {
 		return
 	}
 
@@ -187,20 +169,11 @@ func (r *WorkspaceMemberResource) Delete(ctx context.Context, req resource.Delet
 		return
 	}
 
-	httpResp, err := r.client.DeleteWorkspaceMemberWithResponse(
+	_ = fwdiag.Merge(apiclient.DeleteJSON200(r.client.DeleteWorkspaceMemberWithResponse(
 		ctx,
 		data.WorkspaceId.ValueString(),
 		data.UserId.ValueString(),
-	)
-	if err != nil {
-		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to delete, got error: %s", err))
-		return
-	}
-
-	if httpResp.StatusCode() != http.StatusOK {
-		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to delete, got status code %d: %s", httpResp.StatusCode(), string(httpResp.Body)))
-		return
-	}
+	)))(&resp.Diagnostics)
 }
 
 func (r *WorkspaceMemberResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
