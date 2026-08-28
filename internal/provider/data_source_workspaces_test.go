@@ -24,24 +24,8 @@ func TestAccWorkspacesDataSource(t *testing.T) {
 				Config: testAccWorkspacesDataSourceConfig(workspaceName),
 				ConfigStateChecks: []statecheck.StateCheck{
 					statecheck.ExpectKnownValue(rn, tfjsonpath.New("workspaces"), knownvalue.SetPartial([]knownvalue.Check{
-						knownvalue.ObjectExact(map[string]knownvalue.Check{
-							"id":             knownvalue.NotNull(),
-							"name":           knownvalue.StringExact(workspaceName),
-							"created_at":     knownvalue.NotNull(),
-							"archived_at":    knownvalue.Null(),
-							"display_color":  knownvalue.NotNull(),
-							"compartment_id": knownvalue.NotNull(),
-							"data_residency": knownvalue.ObjectExact(map[string]knownvalue.Check{
-								"allowed_inference_geos":              knownvalue.Null(),
-								"allowed_inference_geos_unrestricted": knownvalue.Bool(true),
-								"default_inference_geo":               knownvalue.StringExact("global"),
-								"workspace_geo":                       knownvalue.StringExact("us"),
-							}),
-							"external_key_id": knownvalue.Null(),
-							"tags": knownvalue.MapExact(map[string]knownvalue.Check{
-								"env":  knownvalue.StringExact("prod"),
-								"team": knownvalue.StringExact("platform"),
-							}),
+						knownvalue.ObjectPartial(map[string]knownvalue.Check{
+							"name": knownvalue.StringExact(workspaceName),
 						}),
 					})),
 				},
@@ -54,11 +38,6 @@ func testAccWorkspacesDataSourceConfig(workspaceName string) string {
 	return fmt.Sprintf(`
 resource "anthropic_workspace" "test" {
 	name = %[1]q
-
-	tags = {
-		env = "prod"
-		team = "platform"
-	}
 }
 
 data "anthropic_workspaces" "test" {

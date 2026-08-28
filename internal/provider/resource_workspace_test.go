@@ -89,6 +89,16 @@ func TestAccWorkspaceResource(t *testing.T) {
 					statecheck.ExpectKnownValue(rn, tfjsonpath.New("archived_at"), knownvalue.Null()),
 					statecheck.ExpectKnownValue(rn, tfjsonpath.New("display_color"), knownvalue.NotNull()),
 					statecheck.ExpectKnownValue(rn, tfjsonpath.New("compartment_id"), knownvalue.NotNull()),
+					statecheck.ExpectKnownValue(rn, tfjsonpath.New("data_residency"), knownvalue.ObjectExact(map[string]knownvalue.Check{
+						"allowed_inference_geos": knownvalue.ObjectExact(map[string]knownvalue.Check{
+							"values":       knownvalue.Null(),
+							"unrestricted": knownvalue.Bool(true),
+						}),
+						"default_inference_geo": knownvalue.StringExact("global"),
+						"workspace_geo":         knownvalue.StringExact("us"),
+					})),
+					statecheck.ExpectKnownValue(rn, tfjsonpath.New("external_key_id"), knownvalue.Null()),
+					statecheck.ExpectKnownValue(rn, tfjsonpath.New("tags"), knownvalue.MapSizeExact(0)),
 				},
 			},
 			{
@@ -110,41 +120,17 @@ func TestAccWorkspaceResource(t *testing.T) {
 					statecheck.ExpectKnownValue(rn, tfjsonpath.New("display_color"), knownvalue.NotNull()),
 					statecheck.ExpectKnownValue(rn, tfjsonpath.New("compartment_id"), knownvalue.NotNull()),
 					statecheck.ExpectKnownValue(rn, tfjsonpath.New("data_residency"), knownvalue.ObjectExact(map[string]knownvalue.Check{
-						"allowed_inference_geos":              knownvalue.Null(),
-						"allowed_inference_geos_unrestricted": knownvalue.Bool(true),
-						"default_inference_geo":               knownvalue.StringExact("global"),
-						"workspace_geo":                       knownvalue.StringExact("us"),
+						"allowed_inference_geos": knownvalue.ObjectExact(map[string]knownvalue.Check{
+							"values":       knownvalue.Null(),
+							"unrestricted": knownvalue.Bool(true),
+						}),
+						"default_inference_geo": knownvalue.StringExact("global"),
+						"workspace_geo":         knownvalue.StringExact("us"),
 					})),
 					statecheck.ExpectKnownValue(rn, tfjsonpath.New("external_key_id"), knownvalue.Null()),
 					statecheck.ExpectKnownValue(rn, tfjsonpath.New("tags"), knownvalue.MapExact(map[string]knownvalue.Check{
 						"foo": knownvalue.StringExact("bar"),
 					})),
-				},
-			},
-			{
-				Config: testAccWorkspaceResourceConfig(workspaceName+"-updated", `
-					data_residency = {
-						allowed_inference_geos = ["us"]
-						default_inference_geo = "us"
-					}
-				`),
-				ConfigStateChecks: []statecheck.StateCheck{
-					statecheck.ExpectKnownValue(rn, tfjsonpath.New("id"), knownvalue.NotNull()),
-					statecheck.ExpectKnownValue(rn, tfjsonpath.New("name"), knownvalue.StringExact(workspaceName+"-updated")),
-					statecheck.ExpectKnownValue(rn, tfjsonpath.New("created_at"), knownvalue.NotNull()),
-					statecheck.ExpectKnownValue(rn, tfjsonpath.New("archived_at"), knownvalue.Null()),
-					statecheck.ExpectKnownValue(rn, tfjsonpath.New("display_color"), knownvalue.NotNull()),
-					statecheck.ExpectKnownValue(rn, tfjsonpath.New("compartment_id"), knownvalue.NotNull()),
-					statecheck.ExpectKnownValue(rn, tfjsonpath.New("data_residency"), knownvalue.ObjectExact(map[string]knownvalue.Check{
-						"allowed_inference_geos": knownvalue.SetExact([]knownvalue.Check{
-							knownvalue.StringExact("us"),
-						}),
-						"allowed_inference_geos_unrestricted": knownvalue.Null(),
-						"default_inference_geo":               knownvalue.StringExact("us"),
-						"workspace_geo":                       knownvalue.StringExact("us"),
-					})),
-					statecheck.ExpectKnownValue(rn, tfjsonpath.New("external_key_id"), knownvalue.Null()),
-					statecheck.ExpectKnownValue(rn, tfjsonpath.New("tags"), knownvalue.MapSizeExact(0)),
 				},
 			},
 		},

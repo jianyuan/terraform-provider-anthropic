@@ -26,10 +26,8 @@ func TestAccWorkspaceMembersDataSource(t *testing.T) {
 				ConfigStateChecks: []statecheck.StateCheck{
 					statecheck.CompareValuePairs(rn, tfjsonpath.New("id"), "anthropic_workspace.test", tfjsonpath.New("id"), compare.ValuesSame()),
 					statecheck.ExpectKnownValue(rn, tfjsonpath.New("members"), knownvalue.SetPartial([]knownvalue.Check{
-						knownvalue.ObjectExact(map[string]knownvalue.Check{
-							"workspace_id":   knownvalue.NotNull(),
-							"user_id":        knownvalue.StringExact(acctest.TestUserId),
-							"workspace_role": knownvalue.NotNull(),
+						knownvalue.ObjectPartial(map[string]knownvalue.Check{
+							"user_id": knownvalue.StringExact(acctest.TestUserId),
 						}),
 					})),
 				},

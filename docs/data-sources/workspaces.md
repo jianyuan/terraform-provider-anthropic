@@ -39,7 +39,14 @@ Read-Only:
 
 Read-Only:
 
-- `allowed_inference_geos` (Set of String) Permitted inference geo values.
-- `allowed_inference_geos_unrestricted` (Boolean) All geos available for inference.
+- `allowed_inference_geos` (Attributes) Permitted inference geo values. (see [below for nested schema](#nestedatt--workspaces--data_residency--allowed_inference_geos))
 - `default_inference_geo` (String) Default inference geo applied when requests omit the parameter.
 - `workspace_geo` (String) Geographic region for workspace data storage. Immutable after creation.
+
+<a id="nestedatt--workspaces--data_residency--allowed_inference_geos"></a>
+### Nested Schema for `workspaces.data_residency.allowed_inference_geos`
+
+Read-Only:
+
+- `unrestricted` (Boolean) All geos available for inference.
+- `values` (Set of String) List of allowed inference geos.

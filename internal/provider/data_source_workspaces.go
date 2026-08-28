@@ -18,7 +18,7 @@ type WorkspacesDataSourceModel struct {
 func (m *WorkspacesDataSourceModel) Fill(ctx context.Context, workspaces []apiclient.Workspace) (diags diag.Diagnostics) {
 	m.Workspaces = supertypes.NewSetNestedObjectValueOfValueSlice(ctx, lo.Map(workspaces, func(workspace apiclient.Workspace, _ int) WorkspaceModel {
 		var mm WorkspaceModel
-		diags.Append(mm.Fill(ctx, workspace)...)
+		diags.Append(mm.FromAPI(ctx, workspace)...)
 		return mm
 	}))
 	return

@@ -7,6 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	schemaR "github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/boolplanmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/objectplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/setplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
@@ -22,7 +23,7 @@ func workspaceSchema() superschema.Schema {
 		DataSource: superschema.SchemaDetails{
 			MarkdownDescription: "Get information about a Workspace.",
 		},
-		Attributes: map[string]superschema.Attribute{
+		Attributes: superschema.Attributes{
 			"id": superschema.StringAttribute{
 				Common: &schemaR.StringAttribute{
 					MarkdownDescription: "ID of the Workspace.",
@@ -98,41 +99,58 @@ func workspaceSchema() superschema.Schema {
 				DataSource: &schemaD.SingleNestedAttribute{
 					Computed: true,
 				},
-				Attributes: map[string]superschema.Attribute{
-					"allowed_inference_geos": superschema.SuperSetAttributeOf[string]{
-						Common: &schemaR.SetAttribute{
+				Attributes: superschema.Attributes{
+					"allowed_inference_geos": superschema.SuperSingleNestedAttributeOf[WorkspaceModelDataResidencyAllowedInferenceGeos]{
+						Common: &schemaR.SingleNestedAttribute{
 							MarkdownDescription: "Permitted inference geo values.",
 						},
-						Resource: &schemaR.SetAttribute{
+						Resource: &schemaR.SingleNestedAttribute{
 							Optional: true,
 							Computed: true,
-							Validators: []validator.Set{
-								setvalidator.ConflictsWith(path.MatchRelative().AtParent().AtName("allowed_inference_geos_unrestricted")),
-							},
-							PlanModifiers: []planmodifier.Set{
-								setplanmodifier.UseStateForUnknown(),
+							PlanModifiers: []planmodifier.Object{
+								objectplanmodifier.UseStateForUnknown(),
 							},
 						},
-						DataSource: &schemaD.SetAttribute{
+						DataSource: &schemaD.SingleNestedAttribute{
 							Computed: true,
 						},
-					},
-					"allowed_inference_geos_unrestricted": superschema.BoolAttribute{
-						Common: &schemaR.BoolAttribute{
-							MarkdownDescription: "All geos available for inference.",
-						},
-						Resource: &schemaR.BoolAttribute{
-							Optional: true,
-							Computed: true,
-							Validators: []validator.Bool{
-								boolvalidator.ConflictsWith(path.MatchRelative().AtParent().AtName("allowed_inference_geos")),
+						Attributes: superschema.Attributes{
+							"values": superschema.SuperSetAttributeOf[string]{
+								Common: &schemaR.SetAttribute{
+									MarkdownDescription: "List of allowed inference geos.",
+								},
+								Resource: &schemaR.SetAttribute{
+									Optional: true,
+									Computed: true,
+									Validators: []validator.Set{
+										setvalidator.ConflictsWith(path.MatchRelative().AtParent().AtName("unrestricted")),
+									},
+									PlanModifiers: []planmodifier.Set{
+										setplanmodifier.UseStateForUnknown(),
+									},
+								},
+								DataSource: &schemaD.SetAttribute{
+									Computed: true,
+								},
 							},
-							PlanModifiers: []planmodifier.Bool{
-								boolplanmodifier.UseStateForUnknown(),
+							"unrestricted": superschema.BoolAttribute{
+								Common: &schemaR.BoolAttribute{
+									MarkdownDescription: "All geos available for inference.",
+								},
+								Resource: &schemaR.BoolAttribute{
+									Optional: true,
+									Computed: true,
+									Validators: []validator.Bool{
+										boolvalidator.ConflictsWith(path.MatchRelative().AtParent().AtName("values")),
+									},
+									PlanModifiers: []planmodifier.Bool{
+										boolplanmodifier.UseStateForUnknown(),
+									},
+								},
+								DataSource: &schemaD.BoolAttribute{
+									Computed: true,
+								},
 							},
-						},
-						DataSource: &schemaD.BoolAttribute{
-							Computed: true,
 						},
 					},
 					"default_inference_geo": superschema.StringAttribute{

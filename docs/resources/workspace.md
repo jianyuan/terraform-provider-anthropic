@@ -44,10 +44,17 @@ resource "anthropic_workspace" "example" {
 
 Optional:
 
-- `allowed_inference_geos` (Set of String) Permitted inference geo values. Ensure that if an attribute is set, these are not set: "[<.allowed_inference_geos_unrestricted]".
-- `allowed_inference_geos_unrestricted` (Boolean) All geos available for inference. Ensure that if an attribute is set, these are not set: "[<.allowed_inference_geos]".
+- `allowed_inference_geos` (Attributes) Permitted inference geo values. (see [below for nested schema](#nestedatt--data_residency--allowed_inference_geos))
 - `default_inference_geo` (String) Default inference geo applied when requests omit the parameter.
 - `workspace_geo` (String) <i style="color:red;font-weight: bold">(ForceNew)</i> Geographic region for workspace data storage. Immutable after creation.
+
+<a id="nestedatt--data_residency--allowed_inference_geos"></a>
+### Nested Schema for `data_residency.allowed_inference_geos`
+
+Optional:
+
+- `unrestricted` (Boolean) All geos available for inference. Ensure that if an attribute is set, these are not set: "[<.values]".
+- `values` (Set of String) List of allowed inference geos. Ensure that if an attribute is set, these are not set: "[<.unrestricted]".
 
 ## Import
 
