@@ -3,19 +3,12 @@ package provider
 import (
 	"context"
 
-	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/setplanmodifier"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
-	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/jianyuan/terraform-provider-anthropic/internal/apiclient"
 	"github.com/jianyuan/terraform-provider-anthropic/internal/fwdiag"
 	"github.com/jianyuan/terraform-provider-anthropic/internal/fwtypes"
 	"github.com/jianyuan/terraform-provider-anthropic/internal/tfutils"
-	supertypes "github.com/orange-cloudavenue/terraform-plugin-framework-supertypes"
 )
 
 var _ resource.Resource = &OrganizationInviteResource{}
@@ -35,60 +28,7 @@ func (r *OrganizationInviteResource) Metadata(ctx context.Context, req resource.
 }
 
 func (r *OrganizationInviteResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
-	resp.Schema = schema.Schema{
-		MarkdownDescription: "Organization invite resource. Manages invitations to join an organization.",
-
-		Attributes: map[string]schema.Attribute{
-			"id": schema.StringAttribute{
-				MarkdownDescription: "ID of the Invite.",
-				Computed:            true,
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.UseStateForUnknown(),
-				},
-			},
-			"email": schema.StringAttribute{
-				MarkdownDescription: "Email of the User being invited.",
-				Required:            true,
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.RequiresReplace(),
-				},
-			},
-			"role": schema.StringAttribute{
-				MarkdownDescription: "Organization role of the User. Must be one of `admin`, `billing`, `claude_code_user`, `developer`, `managed`, `membership_admin`, `owner`, `primary_owner`, `user`.",
-				Required:            true,
-				Validators: []validator.String{
-					stringvalidator.OneOf("admin", "billing", "claude_code_user", "developer", "managed", "membership_admin", "owner", "primary_owner", "user"),
-				},
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.RequiresReplace(),
-				},
-			},
-			"rbac_group_ids": schema.SetAttribute{
-				MarkdownDescription: "RBAC group IDs to assign to the User when the Invite is accepted. A non-empty array is accepted only for a Claude Enterprise organization with RBAC groups (beta), and requires the key to carry the `write:rbac_groups` scope.",
-				Optional:            true,
-				CustomType:          supertypes.NewSetTypeOf[string](ctx),
-				PlanModifiers: []planmodifier.Set{
-					setplanmodifier.RequiresReplace(),
-				},
-			},
-			"status": schema.StringAttribute{
-				MarkdownDescription: "Status of the Invite (e.g. `accepted`, `deleted`, `expired`, or `pending`).",
-				Computed:            true,
-			},
-			"accepted_at": schema.StringAttribute{
-				MarkdownDescription: "RFC 3339 datetime string indicating when the Invite was accepted, or null.",
-				Computed:            true,
-			},
-			"invited_at": schema.StringAttribute{
-				MarkdownDescription: "RFC 3339 datetime string indicating when the Invite was created.",
-				Computed:            true,
-			},
-			"expires_at": schema.StringAttribute{
-				MarkdownDescription: "RFC 3339 datetime string indicating when the Invite expires.",
-				Computed:            true,
-			},
-		},
-	}
+	resp.Schema = organizationInviteSchema().GetResource(ctx)
 }
 
 func (r *OrganizationInviteResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {

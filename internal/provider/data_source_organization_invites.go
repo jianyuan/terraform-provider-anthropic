@@ -2,47 +2,34 @@ package provider
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
-	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/jianyuan/terraform-provider-anthropic/internal/apiclient"
+	"github.com/jianyuan/terraform-provider-anthropic/internal/fwdiag"
+	supertypes "github.com/orange-cloudavenue/terraform-plugin-framework-supertypes"
+	"github.com/samber/lo"
 )
 
 type OrganizationInvitesDataSourceModel struct {
-	Invites []OrganizationInviteDataSourceModel `tfsdk:"invites"`
+	Invites supertypes.SetNestedObjectValueOf[OrganizationInviteModel] `tfsdk:"invites"`
 }
 
-type OrganizationInviteDataSourceModel struct {
-	Id        string `tfsdk:"id"`
-	Email     string `tfsdk:"email"`
-	Role      string `tfsdk:"role"`
-	Status    string `tfsdk:"status"`
-	CreatedAt string `tfsdk:"created_at"` // TODO: rename to invited_at
-	ExpiresAt string `tfsdk:"expires_at"`
+func (m *OrganizationInvitesDataSourceModel) FromAPI(ctx context.Context, invites []apiclient.Invite) (diags diag.Diagnostics) {
+	m.Invites = supertypes.NewSetNestedObjectValueOfValueSlice(ctx, lo.Map(invites, func(invite apiclient.Invite, _ int) OrganizationInviteModel {
+		var mm OrganizationInviteModel
+		diags.Append(mm.FromAPI(ctx, invite)...)
+		return mm
+	}))
+	return
 }
 
-func (m *OrganizationInvitesDataSourceModel) FromAPI(invites []apiclient.Invite) error {
-	m.Invites = make([]OrganizationInviteDataSourceModel, len(invites))
-	for i, inv := range invites {
-		m.Invites[i] = OrganizationInviteDataSourceModel{
-			Id:        inv.Id,
-			Email:     inv.Email,
-			Role:      string(inv.Role),
-			Status:    string(inv.Status),
-			CreatedAt: inv.InvitedAt,
-			ExpiresAt: inv.ExpiresAt,
-		}
-	}
-
-	return nil
-}
+var _ datasource.DataSource = &OrganizationInvitesDataSource{}
+var _ datasource.DataSourceWithConfigure = &OrganizationInvitesDataSource{}
 
 func NewOrganizationInvitesDataSource() datasource.DataSource {
 	return &OrganizationInvitesDataSource{}
 }
-
-var _ datasource.DataSource = &OrganizationInvitesDataSource{}
 
 type OrganizationInvitesDataSource struct {
 	baseDataSource
@@ -53,44 +40,7 @@ func (d *OrganizationInvitesDataSource) Metadata(ctx context.Context, req dataso
 }
 
 func (d *OrganizationInvitesDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
-	resp.Schema = schema.Schema{
-		MarkdownDescription: "List all pending invites in the Organization.",
-
-		Attributes: map[string]schema.Attribute{
-			"invites": schema.SetNestedAttribute{
-				MarkdownDescription: "List of pending organization invites.",
-				Computed:            true,
-				NestedObject: schema.NestedAttributeObject{
-					Attributes: map[string]schema.Attribute{
-						"id": schema.StringAttribute{
-							MarkdownDescription: "Unique identifier for the invite.",
-							Computed:            true,
-						},
-						"email": schema.StringAttribute{
-							MarkdownDescription: "Email address of the person being invited.",
-							Computed:            true,
-						},
-						"role": schema.StringAttribute{
-							MarkdownDescription: "Role to assign to the invited user.",
-							Computed:            true,
-						},
-						"status": schema.StringAttribute{
-							MarkdownDescription: "Current status of the invite (e.g., pending, accepted, expired).",
-							Computed:            true,
-						},
-						"created_at": schema.StringAttribute{
-							MarkdownDescription: "RFC 3339 datetime string indicating when the invite was created.",
-							Computed:            true,
-						},
-						"expires_at": schema.StringAttribute{
-							MarkdownDescription: "RFC 3339 datetime string indicating when the invite expires.",
-							Computed:            true,
-						},
-					},
-				},
-			},
-		},
-	}
+	resp.Schema = organizationInvitesSchema().GetDataSource(ctx)
 }
 
 func (d *OrganizationInvitesDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
@@ -107,36 +57,26 @@ func (d *OrganizationInvitesDataSource) Read(ctx context.Context, req datasource
 	}
 
 	for {
-		httpResp, err := d.client.ListInvitesWithResponse(
+		page := fwdiag.Merge(apiclient.ReadJSON200(d.client.ListInvitesWithResponse(
 			ctx,
 			params,
-		)
-		if err != nil {
-			resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to read invites, got error: %s", err))
+			d.WithApiKeyRequestEditorFn(),
+		)))(&resp.Diagnostics)
+		if resp.Diagnostics.HasError() {
 			return
 		}
 
-		if httpResp.StatusCode() != 200 {
-			resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to read invites, got status code: %d", httpResp.StatusCode()))
-			return
-		}
+		invites = append(invites, page.Data...)
 
-		if httpResp.JSON200 == nil {
-			resp.Diagnostics.AddError("Client Error", "Unable to read invites, got empty response body")
-			return
-		}
-
-		invites = append(invites, httpResp.JSON200.Data...)
-
-		if v, err := httpResp.JSON200.LastId.Get(); err == nil {
+		if v, err := page.LastId.Get(); err == nil {
 			params.AfterId = new(v)
 		} else {
 			break
 		}
 	}
 
-	if err := data.FromAPI(invites); err != nil {
-		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to fill data, got error: %s", err))
+	resp.Diagnostics.Append(data.FromAPI(ctx, invites)...)
+	if resp.Diagnostics.HasError() {
 		return
 	}
 

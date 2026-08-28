@@ -38,9 +38,11 @@ output "invite_count" {
 
 Read-Only:
 
-- `created_at` (String) RFC 3339 datetime string indicating when the invite was created.
-- `email` (String) Email address of the person being invited.
-- `expires_at` (String) RFC 3339 datetime string indicating when the invite expires.
-- `id` (String) Unique identifier for the invite.
-- `role` (String) Role to assign to the invited user.
-- `status` (String) Current status of the invite (e.g., pending, accepted, expired).
+- `accepted_at` (String) RFC 3339 datetime string indicating when the Invite was accepted, or null.
+- `email` (String) Email of the User being invited.
+- `expires_at` (String) RFC 3339 datetime string indicating when the Invite expires.
+- `id` (String) ID of the Invite.
+- `invited_at` (String) RFC 3339 datetime string indicating when the Invite was created.
+- `rbac_group_ids` (Set of String) RBAC group IDs to assign to the User when the Invite is accepted. A non-empty array is accepted only for a Claude Enterprise organization with RBAC groups (beta), and requires the key to carry the `write:rbac_groups` scope.
+- `role` (String) Organization role of the User. Must be one of `admin`, `billing`, `claude_code_user`, `developer`, `managed`, `membership_admin`, `owner`, `primary_owner`, `user`.
+- `status` (String) Status of the Invite (e.g. `accepted`, `deleted`, `expired`, or `pending`).

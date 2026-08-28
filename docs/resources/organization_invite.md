@@ -29,12 +29,12 @@ resource "anthropic_organization_invite" "user" {
 
 ### Required
 
-- `email` (String) Email of the User being invited.
-- `role` (String) Organization role of the User. Must be one of `admin`, `billing`, `claude_code_user`, `developer`, `managed`, `membership_admin`, `owner`, `primary_owner`, `user`.
+- `email` (String) <i style="color:red;font-weight: bold">(ForceNew)</i> Email of the User being invited.
+- `role` (String) <i style="color:red;font-weight: bold">(ForceNew)</i> Organization role of the User. Must be one of `admin`, `billing`, `claude_code_user`, `developer`, `managed`, `membership_admin`, `owner`, `primary_owner`, `user`.
 
 ### Optional
 
-- `rbac_group_ids` (Set of String) RBAC group IDs to assign to the User when the Invite is accepted. A non-empty array is accepted only for a Claude Enterprise organization with RBAC groups (beta), and requires the key to carry the `write:rbac_groups` scope.
+- `rbac_group_ids` (Set of String) <i style="color:red;font-weight: bold">(ForceNew)</i> RBAC group IDs to assign to the User when the Invite is accepted. A non-empty array is accepted only for a Claude Enterprise organization with RBAC groups (beta), and requires the key to carry the `write:rbac_groups` scope.
 
 ### Read-Only
 
