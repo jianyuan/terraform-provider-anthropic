@@ -1,10 +1,14 @@
 package provider
 
 import (
+	"github.com/hashicorp/terraform-plugin-framework-validators/boolvalidator"
+	"github.com/hashicorp/terraform-plugin-framework-validators/setvalidator"
 	schemaD "github.com/hashicorp/terraform-plugin-framework/datasource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	schemaR "github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	superschema "github.com/orange-cloudavenue/terraform-plugin-framework-superschema"
 )
 
@@ -85,6 +89,9 @@ func workspaceSchema() superschema.Schema {
 						Resource: &schemaR.SetAttribute{
 							Optional: true,
 							Computed: true,
+							Validators: []validator.Set{
+								setvalidator.ConflictsWith(path.MatchRelative().AtParent().AtName("allowed_inference_geos_unrestricted")),
+							},
 						},
 						DataSource: &schemaD.SetAttribute{
 							Computed: true,
@@ -97,6 +104,9 @@ func workspaceSchema() superschema.Schema {
 						Resource: &schemaR.BoolAttribute{
 							Optional: true,
 							Computed: true,
+							Validators: []validator.Bool{
+								boolvalidator.ConflictsWith(path.MatchRelative().AtParent().AtName("allowed_inference_geos")),
+							},
 						},
 						DataSource: &schemaD.BoolAttribute{
 							Computed: true,

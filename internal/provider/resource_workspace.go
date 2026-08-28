@@ -58,7 +58,9 @@ func (r *WorkspaceResource) Create(ctx context.Context, req resource.CreateReque
 			return
 		}
 
-		var bodyDR apiclient.CreateWorkspaceRequest_DataResidency
+		bodyDR := apiclient.CreateWorkspaceRequest_DataResidency{
+			AllowedInferenceGeos: &apiclient.CreateWorkspaceRequest_DataResidency_AllowedInferenceGeos{},
+		}
 		if !dr.AllowedInferenceGeos.IsNull() && !dr.AllowedInferenceGeos.IsUnknown() {
 			bodyDR.AllowedInferenceGeos.FromCreateWorkspaceRequestDataResidencyAllowedInferenceGeos0(fwdiag.Merge(dr.AllowedInferenceGeos.Get(ctx))(&resp.Diagnostics))
 		} else if !dr.AllowedInferenceGeosUnrestricted.IsNull() && !dr.AllowedInferenceGeosUnrestricted.IsUnknown() {

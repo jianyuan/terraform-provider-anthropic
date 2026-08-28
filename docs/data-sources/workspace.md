@@ -28,6 +28,20 @@ data "anthropic_workspace" "example" {
 ### Read-Only
 
 - `archived_at` (String) RFC 3339 datetime string indicating when the Workspace was archived, or null if the Workspace is not archived.
+- `compartment_id` (String) Identifier for this Workspace's encryption compartment. When you configure a customer-managed encryption key (CMEK) on AWS, reference this value in your KMS key-policy condition so the key is scoped to this compartment. On GCP and Azure, Anthropic enforces the compartment binding automatically; you do not need to reference this value in your key configuration. See the CMEK integration guide for the required key configuration, including the value used during key validation.
 - `created_at` (String) RFC 3339 datetime string indicating when the Workspace was created.
+- `data_residency` (Attributes) Data residency configuration. (see [below for nested schema](#nestedatt--data_residency))
 - `display_color` (String) Hex color code representing the Workspace in the Anthropic Console.
+- `external_key_id` (String) ID of the customer-managed encryption key (CMEK) configuration to use for this Workspace. Setting this field requires CMEK to be enabled for your organization. When set, data stored for this Workspace is encrypted with the referenced key. Create key configurations with the External Keys API. This field is write-once: once a key is attached to a Workspace it cannot be detached or replaced. To rotate key material, rotate the underlying key on your cloud KMS; the `external_key_id` stays the same.
 - `name` (String) Name of the Workspace.
+- `tags` (Map of String) User-defined tags as string key-value pairs. Keys may not begin with `anthropic`.
+
+<a id="nestedatt--data_residency"></a>
+### Nested Schema for `data_residency`
+
+Read-Only:
+
+- `allowed_inference_geos` (Set of String) Permitted inference geo values.
+- `allowed_inference_geos_unrestricted` (Boolean) All geos available for inference.
+- `default_inference_geo` (String) Default inference geo applied when requests omit the parameter.
+- `workspace_geo` (String) Geographic region for workspace data storage. Immutable after creation.
