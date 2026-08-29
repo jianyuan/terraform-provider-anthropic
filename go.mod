@@ -11,7 +11,7 @@ require (
 	github.com/hashicorp/terraform-plugin-sdk/v2 v2.40.1
 	github.com/hashicorp/terraform-plugin-testing v1.16.0
 	github.com/jianyuan/go-utils v0.0.0-20250223213401-62c93a9e0b6c
-	github.com/jianyuan/terraform-plugin-framework-utils v0.0.0-20260829101527-cc5e83050d90
+	github.com/jianyuan/terraform-plugin-framework-utils v0.0.0-20260829102355-12613d34d2fc
 	github.com/oapi-codegen/nullable v1.2.0
 	github.com/oapi-codegen/runtime v1.7.0
 	github.com/orange-cloudavenue/terraform-plugin-framework-superschema v1.12.0
