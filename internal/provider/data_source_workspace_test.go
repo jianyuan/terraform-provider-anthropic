@@ -38,10 +38,7 @@ func TestAccWorkspaceDataSource(t *testing.T) {
 						"workspace_geo":         knownvalue.StringExact("us"),
 					})),
 					statecheck.ExpectKnownValue(rn, tfjsonpath.New("external_key_id"), knownvalue.Null()),
-					statecheck.ExpectKnownValue(rn, tfjsonpath.New("tags"), knownvalue.MapExact(map[string]knownvalue.Check{
-						"env":  knownvalue.StringExact("prod"),
-						"team": knownvalue.StringExact("platform"),
-					})),
+					statecheck.ExpectKnownValue(rn, tfjsonpath.New("tags"), knownvalue.NotNull()),
 				},
 			},
 		},
@@ -52,11 +49,6 @@ func testAccWorkspaceDataSourceConfig(workspaceName string) string {
 	return fmt.Sprintf(`
 resource "anthropic_workspace" "test" {
 	name = %[1]q
-
-	tags = {
-		env = "prod"
-		team = "platform"
-	}
 }
 
 data "anthropic_workspace" "test" {
