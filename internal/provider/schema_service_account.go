@@ -13,10 +13,10 @@ import (
 func serviceAccountSchema() superschema.Schema {
 	return superschema.Schema{
 		Resource: superschema.SchemaDetails{
-			MarkdownDescription: "Manage a Service Account.",
+			MarkdownDescription: "Manage a Service Account.\n\nRequires an OAuth bearer. Admin API keys are not accepted.",
 		},
 		DataSource: superschema.SchemaDetails{
-			MarkdownDescription: "Retrieve a Service Account.",
+			MarkdownDescription: "Retrieve a Service Account.\n\nRequires an OAuth bearer. Admin API keys are not accepted.",
 		},
 		Attributes: superschema.Attributes{
 			"id": superschema.StringAttribute{

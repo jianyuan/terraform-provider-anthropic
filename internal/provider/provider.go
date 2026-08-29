@@ -150,6 +150,7 @@ func (p *AnthropicProvider) Resources(ctx context.Context) []func() resource.Res
 	return []func() resource.Resource{
 		NewOrganizationInviteResource,
 		NewServiceAccountResource,
+		NewServiceAccountWorkspaceMemberResource,
 		NewWorkspaceMemberResource,
 		NewWorkspaceResource,
 	}
