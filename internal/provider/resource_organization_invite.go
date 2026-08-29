@@ -8,7 +8,6 @@ import (
 	"github.com/jianyuan/terraform-provider-anthropic/internal/apiclient"
 	"github.com/jianyuan/terraform-provider-anthropic/internal/fwdiag"
 	"github.com/jianyuan/terraform-provider-anthropic/internal/fwtypes"
-	"github.com/jianyuan/terraform-provider-anthropic/internal/tfutils"
 )
 
 var _ resource.Resource = &OrganizationInviteResource{}
@@ -44,7 +43,7 @@ func (r *OrganizationInviteResource) Create(ctx context.Context, req resource.Cr
 		Role:  apiclient.CreateInviteRequestRole(data.Role.ValueString()),
 	}
 	if fwtypes.IsKnown(data.RbacGroupIds) {
-		body.RbacGroupIds = new(tfutils.MergeDiagnostics(data.RbacGroupIds.Get(ctx))(&resp.Diagnostics))
+		body.RbacGroupIds = new(fwdiag.Merge(data.RbacGroupIds.Get(ctx))(&resp.Diagnostics))
 	}
 	if resp.Diagnostics.HasError() {
 		return

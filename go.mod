@@ -11,8 +11,12 @@ require (
 	github.com/hashicorp/terraform-plugin-sdk/v2 v2.40.1
 	github.com/hashicorp/terraform-plugin-testing v1.16.0
 	github.com/jianyuan/go-utils v0.0.0-20250223213401-62c93a9e0b6c
+	github.com/jianyuan/terraform-plugin-framework-utils v0.0.0-20260829101527-cc5e83050d90
 	github.com/oapi-codegen/nullable v1.2.0
 	github.com/oapi-codegen/runtime v1.7.0
+	github.com/orange-cloudavenue/terraform-plugin-framework-superschema v1.12.0
+	github.com/orange-cloudavenue/terraform-plugin-framework-supertypes v1.2.0
+	github.com/samber/lo v1.53.0
 )
 
 require (
@@ -74,10 +78,7 @@ require (
 	github.com/oasdiff/yaml v0.1.1 // indirect
 	github.com/oasdiff/yaml3 v0.0.14 // indirect
 	github.com/oklog/run v1.2.0 // indirect
-	github.com/orange-cloudavenue/terraform-plugin-framework-superschema v1.12.0 // indirect
-	github.com/orange-cloudavenue/terraform-plugin-framework-supertypes v1.2.0 // indirect
 	github.com/posener/complete v1.2.3 // indirect
-	github.com/samber/lo v1.53.0 // indirect
 	github.com/santhosh-tekuri/jsonschema/v6 v6.0.2 // indirect
 	github.com/shopspring/decimal v1.3.1 // indirect
 	github.com/speakeasy-api/jsonpath v0.6.3 // indirect
