@@ -7,11 +7,8 @@ import (
 	"time"
 
 	retry "github.com/avast/retry-go/v5"
-	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
-	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/jianyuan/terraform-provider-anthropic/internal/apiclient"
 	"github.com/jianyuan/terraform-provider-anthropic/internal/fwdiag"
 	"github.com/jianyuan/terraform-provider-anthropic/internal/fwtypes"
@@ -34,27 +31,7 @@ func (r *WorkspaceMemberResource) Metadata(ctx context.Context, req resource.Met
 }
 
 func (r *WorkspaceMemberResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
-	resp.Schema = schema.Schema{
-		MarkdownDescription: "Workspace member resource.",
-
-		Attributes: map[string]schema.Attribute{
-			"workspace_id": schema.StringAttribute{
-				MarkdownDescription: "ID of the Workspace to which the member belongs.",
-				Required:            true,
-			},
-			"user_id": schema.StringAttribute{
-				MarkdownDescription: "ID of the user who is a member of the Workspace.",
-				Required:            true,
-			},
-			"workspace_role": schema.StringAttribute{
-				MarkdownDescription: "Role of the new Workspace Member. Must be one of `workspace_user`, `workspace_developer`, or `workspace_admin`.",
-				Required:            true,
-				Validators: []validator.String{
-					stringvalidator.OneOf("workspace_user", "workspace_developer", "workspace_admin"),
-				},
-			},
-		},
-	}
+	resp.Schema = workspaceMemberSchema().GetResource(ctx)
 }
 
 func (r *WorkspaceMemberResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {

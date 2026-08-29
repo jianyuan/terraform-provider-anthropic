@@ -3,12 +3,12 @@
 page_title: "anthropic_workspace_member Data Source - terraform-provider-anthropic"
 subcategory: ""
 description: |-
-  Get a member of a Workspace.
+  Get information about a Workspace Member.
 ---
 
 # anthropic_workspace_member (Data Source)
 
-Get a member of a Workspace.
+Get information about a Workspace Member.
 
 ## Example Usage
 
@@ -29,4 +29,4 @@ data "anthropic_workspace_member" "example" {
 
 ### Read-Only
 
-- `workspace_role` (String) Role of the new Workspace Member. Must be one of `workspace_user`, `workspace_developer`, or `workspace_admin`.
+- `workspace_role` (String) Role of the new Workspace Member.

@@ -3,12 +3,12 @@
 page_title: "anthropic_workspace_member Resource - terraform-provider-anthropic"
 subcategory: ""
 description: |-
-  Workspace member resource.
+  Manage a Workspace Member.
 ---
 
 # anthropic_workspace_member (Resource)
 
-Workspace member resource.
+Manage a Workspace Member.
 
 ## Example Usage
 
@@ -34,9 +34,9 @@ resource "anthropic_workspace_member" "example" {
 
 ### Required
 
-- `user_id` (String) ID of the user who is a member of the Workspace.
-- `workspace_id` (String) ID of the Workspace to which the member belongs.
-- `workspace_role` (String) Role of the new Workspace Member. Must be one of `workspace_user`, `workspace_developer`, or `workspace_admin`.
+- `user_id` (String) <i style="color:red;font-weight: bold">(ForceNew)</i> ID of the user who is a member of the Workspace.
+- `workspace_id` (String) <i style="color:red;font-weight: bold">(ForceNew)</i> ID of the Workspace to which the member belongs.
+- `workspace_role` (String) Role of the new Workspace Member. Value must be one of : `workspace_user`, `workspace_developer`, `workspace_admin`.
 
 ## Import
 

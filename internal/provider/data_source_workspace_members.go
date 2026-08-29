@@ -4,7 +4,6 @@ import (
 	"context"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
-	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/jianyuan/terraform-provider-anthropic/internal/apiclient"
@@ -43,37 +42,7 @@ func (d *WorkspaceMembersDataSource) Metadata(ctx context.Context, req datasourc
 }
 
 func (d *WorkspaceMembersDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
-	resp.Schema = schema.Schema{
-		MarkdownDescription: "List all members of the workspace.",
-
-		Attributes: map[string]schema.Attribute{
-			"id": schema.StringAttribute{
-				MarkdownDescription: "ID of the Workspace.",
-				Required:            true,
-			},
-			"members": schema.SetNestedAttribute{
-				MarkdownDescription: "List of members.",
-				Computed:            true,
-				CustomType:          supertypes.NewSetNestedObjectTypeOf[WorkspaceMemberModel](ctx),
-				NestedObject: schema.NestedAttributeObject{
-					Attributes: map[string]schema.Attribute{
-						"workspace_id": schema.StringAttribute{
-							MarkdownDescription: "ID of the Workspace to which the member belongs.",
-							Computed:            true,
-						},
-						"user_id": schema.StringAttribute{
-							MarkdownDescription: "ID of the user who is a member of the Workspace.",
-							Computed:            true,
-						},
-						"workspace_role": schema.StringAttribute{
-							MarkdownDescription: "Role of the new Workspace Member. Must be one of `workspace_user`, `workspace_developer`, or `workspace_admin`.",
-							Computed:            true,
-						},
-					},
-				},
-			},
-		},
-	}
+	resp.Schema = workspaceMembersSchema().GetDataSource(ctx)
 }
 
 func (d *WorkspaceMembersDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {

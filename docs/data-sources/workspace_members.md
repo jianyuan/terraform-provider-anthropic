@@ -27,7 +27,7 @@ data "anthropic_workspace_members" "example" {
 
 ### Read-Only
 
-- `members` (Attributes Set) List of members. (see [below for nested schema](#nestedatt--members))
+- `members` (Attributes Set) List of Workspace Members. (see [below for nested schema](#nestedatt--members))
 
 <a id="nestedatt--members"></a>
 ### Nested Schema for `members`
@@ -36,4 +36,4 @@ Read-Only:
 
 - `user_id` (String) ID of the user who is a member of the Workspace.
 - `workspace_id` (String) ID of the Workspace to which the member belongs.
-- `workspace_role` (String) Role of the new Workspace Member. Must be one of `workspace_user`, `workspace_developer`, or `workspace_admin`.
+- `workspace_role` (String) Role of the new Workspace Member.
