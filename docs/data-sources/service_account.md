@@ -4,11 +4,14 @@ page_title: "anthropic_service_account Data Source - terraform-provider-anthropi
 subcategory: ""
 description: |-
   Retrieve a Service Account.
+  Requires an OAuth bearer. Admin API keys are not accepted.
 ---
 
 # anthropic_service_account (Data Source)
 
 Retrieve a Service Account.
+
+Requires an OAuth bearer. Admin API keys are not accepted.
 
 ## Example Usage
 
