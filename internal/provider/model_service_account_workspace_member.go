@@ -3,9 +3,9 @@ package provider
 import (
 	"context"
 
+	"github.com/anthropics/anthropic-sdk-go"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/jianyuan/terraform-provider-anthropic/internal/apiclient"
 	"github.com/jianyuan/terraform-provider-anthropic/internal/fwtypes"
 )
 
@@ -17,42 +17,27 @@ type ServiceAccountWorkspaceMemberModel struct {
 	Implicit         types.Bool   `tfsdk:"implicit"`
 }
 
-func (m *ServiceAccountWorkspaceMemberModel) FromCreateAPI(ctx context.Context, data apiclient.CreateServiceAccountWorkspaceMember200JSONResponseBody) (diags diag.Diagnostics) {
-	m.WorkspaceId = types.StringValue(data.WorkspaceId)
-	m.ServiceAccountId = types.StringValue(data.ServiceAccountId)
-	m.WorkspaceRole = types.StringValue(string(data.WorkspaceRole))
-	m.CreatedByActorId = fwtypes.NullableStringValue(data.CreatedByActorId)
-	m.Implicit = fwtypes.NullableBoolValue(data.Implicit)
+func (m *ServiceAccountWorkspaceMemberModel) FromAPI(ctx context.Context, data anthropic.ServiceAccountWorkspaceMember) (diags diag.Diagnostics) {
+	m.WorkspaceId = fwtypes.StringValue(data.WorkspaceID, data.JSON.WorkspaceID)
+	m.ServiceAccountId = fwtypes.StringValue(data.ServiceAccountID, data.JSON.ServiceAccountID)
+	m.WorkspaceRole = fwtypes.StringValue(data.WorkspaceRole, data.JSON.WorkspaceRole)
+	m.CreatedByActorId = fwtypes.StringValue(data.CreatedByActorID, data.JSON.CreatedByActorID)
+	m.Implicit = fwtypes.BoolValue(data.Implicit, data.JSON.Implicit)
 	return
 }
 
-func (m *ServiceAccountWorkspaceMemberModel) FromReadAPI(ctx context.Context, data apiclient.GetServiceAccountWorkspaceMember200JSONResponseBody) (diags diag.Diagnostics) {
-	m.WorkspaceId = types.StringValue(data.WorkspaceId)
-	m.ServiceAccountId = types.StringValue(data.ServiceAccountId)
-	m.WorkspaceRole = types.StringValue(string(data.WorkspaceRole))
-	m.CreatedByActorId = fwtypes.NullableStringValue(data.CreatedByActorId)
-	m.Implicit = fwtypes.NullableBoolValue(data.Implicit)
-	return
+func (m *ServiceAccountWorkspaceMemberModel) ToAPIForCreate(ctx context.Context) (*anthropic.OrganizationWorkspaceServiceAccountAddParams, diag.Diagnostics) {
+	var diags diag.Diagnostics
+	return &anthropic.OrganizationWorkspaceServiceAccountAddParams{
+		ServiceAccountID: m.ServiceAccountId.ValueString(),
+		WorkspaceRole:    anthropic.NoBillingWorkspaceRole(m.WorkspaceRole.ValueString()),
+	}, diags
 }
 
-func (m *ServiceAccountWorkspaceMemberModel) FromUpdateAPI(ctx context.Context, data apiclient.UpdateServiceAccountWorkspaceMember200JSONResponseBody) (diags diag.Diagnostics) {
-	m.WorkspaceId = types.StringValue(data.WorkspaceId)
-	m.ServiceAccountId = types.StringValue(data.ServiceAccountId)
-	m.WorkspaceRole = types.StringValue(string(data.WorkspaceRole))
-	m.CreatedByActorId = fwtypes.NullableStringValue(data.CreatedByActorId)
-	m.Implicit = fwtypes.NullableBoolValue(data.Implicit)
-	return
-}
-
-func (m *ServiceAccountWorkspaceMemberModel) ToAPIForCreate(ctx context.Context) (*apiclient.CreateServiceAccountWorkspaceMemberJSONRequestBody, diag.Diagnostics) {
-	return &apiclient.CreateServiceAccountWorkspaceMemberJSONRequestBody{
-		ServiceAccountId: m.ServiceAccountId.ValueString(),
-		WorkspaceRole:    apiclient.CreateServiceAccountWorkspaceMemberRequestWorkspaceRole(m.WorkspaceRole.ValueString()),
-	}, nil
-}
-
-func (m *ServiceAccountWorkspaceMemberModel) ToAPIForUpdate(ctx context.Context) (*apiclient.UpdateServiceAccountWorkspaceMemberJSONRequestBody, diag.Diagnostics) {
-	return &apiclient.UpdateServiceAccountWorkspaceMemberJSONRequestBody{
-		WorkspaceRole: apiclient.UpdateServiceAccountWorkspaceMemberRequestWorkspaceRole(m.WorkspaceRole.ValueString()),
-	}, nil
+func (m *ServiceAccountWorkspaceMemberModel) ToAPIForUpdate(ctx context.Context) (*anthropic.OrganizationWorkspaceServiceAccountUpdateParams, diag.Diagnostics) {
+	var diags diag.Diagnostics
+	return &anthropic.OrganizationWorkspaceServiceAccountUpdateParams{
+		WorkspaceID:   m.WorkspaceId.ValueString(),
+		WorkspaceRole: anthropic.NoBillingWorkspaceRole(m.WorkspaceRole.ValueString()),
+	}, diags
 }

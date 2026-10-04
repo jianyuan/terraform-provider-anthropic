@@ -3,12 +3,13 @@ package provider
 import (
 	"context"
 
+	"github.com/anthropics/anthropic-sdk-go"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/jianyuan/terraform-provider-anthropic/internal/apiclient"
-	"github.com/jianyuan/terraform-provider-anthropic/internal/fwdiag"
+	"github.com/jianyuan/terraform-provider-anthropic/internal/fwdatasource"
+	"github.com/jianyuan/terraform-provider-anthropic/internal/fwtypes"
 )
 
 type UserDataSourceModel struct {
@@ -19,12 +20,12 @@ type UserDataSourceModel struct {
 	AddedAt types.String `tfsdk:"added_at"`
 }
 
-func (m *UserDataSourceModel) FromAPI(ctx context.Context, data apiclient.User) (diags diag.Diagnostics) {
-	m.Id = types.StringValue(data.Id)
-	m.Email = types.StringValue(data.Email)
-	m.Name = types.StringValue(data.Name)
-	m.Role = types.StringValue(string(data.Role))
-	m.AddedAt = types.StringValue(data.AddedAt)
+func (m *UserDataSourceModel) FromAPI(ctx context.Context, data anthropic.OrganizationUser) (diags diag.Diagnostics) {
+	m.Id = fwtypes.StringValue(data.ID, data.JSON.ID)
+	m.Email = fwtypes.StringValue(data.Email, data.JSON.Email)
+	m.Name = fwtypes.StringValue(data.Name, data.JSON.Name)
+	m.Role = fwtypes.StringValue(data.Role, data.JSON.Role)
+	m.AddedAt = fwtypes.TimeValue(data.AddedAt, data.JSON.AddedAt)
 	return
 }
 
@@ -73,26 +74,7 @@ func (d *UserDataSource) Schema(ctx context.Context, req datasource.SchemaReques
 }
 
 func (d *UserDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-	var data UserDataSourceModel
-
-	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
-
-	user := fwdiag.Merge(apiclient.ReadJSON200(d.client.GetUserWithResponse(
-		ctx,
-		data.Id.ValueString(),
-		d.WithApiKeyRequestEditorFn(),
-	)))(&resp.Diagnostics)
-	if resp.Diagnostics.HasError() {
-		return
-	}
-
-	resp.Diagnostics.Append(data.FromAPI(ctx, *user)...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
-
-	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+	fwdatasource.Read(ctx, func(data *UserDataSourceModel) (*anthropic.OrganizationUser, error) {
+		return d.apiKeyClient.Organization.Users.Get(ctx, data.Id.ValueString())
+	}, req, resp)
 }

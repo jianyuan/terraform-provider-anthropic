@@ -3,9 +3,9 @@ package provider
 import (
 	"context"
 
+	"github.com/anthropics/anthropic-sdk-go"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
-	"github.com/jianyuan/terraform-provider-anthropic/internal/apiclient"
-	"github.com/jianyuan/terraform-provider-anthropic/internal/fwdiag"
+	"github.com/jianyuan/terraform-provider-anthropic/internal/fwdatasource"
 )
 
 var _ datasource.DataSource = &WorkspaceDataSource{}
@@ -28,26 +28,7 @@ func (d *WorkspaceDataSource) Schema(ctx context.Context, req datasource.SchemaR
 }
 
 func (d *WorkspaceDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-	var data WorkspaceModel
-
-	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
-
-	workspace := fwdiag.Merge(apiclient.ReadJSON200(d.client.GetWorkspaceWithResponse(
-		ctx,
-		data.Id.ValueString(),
-		d.WithApiKeyRequestEditorFn(),
-	)))(&resp.Diagnostics)
-	if resp.Diagnostics.HasError() {
-		return
-	}
-
-	resp.Diagnostics.Append(data.FromAPI(ctx, *workspace)...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
-
-	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+	fwdatasource.Read(ctx, func(data *WorkspaceModel) (*anthropic.Workspace, error) {
+		return d.apiKeyClient.Organization.Workspaces.Get(ctx, data.Id.ValueString())
+	}, req, resp)
 }

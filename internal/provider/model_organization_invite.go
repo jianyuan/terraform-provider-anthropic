@@ -3,9 +3,9 @@ package provider
 import (
 	"context"
 
+	"github.com/anthropics/anthropic-sdk-go"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/jianyuan/terraform-provider-anthropic/internal/apiclient"
 	"github.com/jianyuan/terraform-provider-anthropic/internal/fwtypes"
 	supertypes "github.com/orange-cloudavenue/terraform-plugin-framework-supertypes"
 )
@@ -21,18 +21,18 @@ type OrganizationInviteModel struct {
 	ExpiresAt    types.String                  `tfsdk:"expires_at"`
 }
 
-func (m *OrganizationInviteModel) FromAPI(ctx context.Context, data apiclient.Invite) (diags diag.Diagnostics) {
-	m.Id = types.StringValue(data.Id)
-	m.Email = types.StringValue(data.Email)
-	m.Role = types.StringValue(string(data.Role))
-	if len(data.RbacGroupIds) == 0 {
+func (m *OrganizationInviteModel) FromAPI(ctx context.Context, data anthropic.OrganizationInvite) (diags diag.Diagnostics) {
+	m.Id = fwtypes.StringValue(data.ID, data.JSON.ID)
+	m.Email = fwtypes.StringValue(data.Email, data.JSON.Email)
+	m.Role = fwtypes.StringValue(data.Role, data.JSON.Role)
+	if len(data.RBACGroupIDs) == 0 {
 		m.RbacGroupIds = supertypes.NewSetValueOfNull[string](ctx)
 	} else {
-		m.RbacGroupIds = supertypes.NewSetValueOfSlice(ctx, data.RbacGroupIds)
+		m.RbacGroupIds = supertypes.NewSetValueOfSlice(ctx, data.RBACGroupIDs)
 	}
-	m.Status = types.StringValue(string(data.Status))
-	m.AcceptedAt = fwtypes.NullableStringValue(data.AcceptedAt)
-	m.InvitedAt = types.StringValue(data.InvitedAt)
-	m.ExpiresAt = types.StringValue(data.ExpiresAt)
+	m.Status = fwtypes.StringValue(data.Status, data.JSON.Status)
+	m.AcceptedAt = fwtypes.TimeValue(data.AcceptedAt, data.JSON.AcceptedAt)
+	m.InvitedAt = fwtypes.TimeValue(data.InvitedAt, data.JSON.InvitedAt)
+	m.ExpiresAt = fwtypes.TimeValue(data.ExpiresAt, data.JSON.ExpiresAt)
 	return
 }

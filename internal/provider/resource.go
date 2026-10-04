@@ -31,5 +31,6 @@ func (r *baseResource) Configure(ctx context.Context, req resource.ConfigureRequ
 
 	r.apiKey = providerData.ApiKey
 	r.authToken = providerData.AuthToken
-	r.client = providerData.Client
+	r.apiKeyClient = providerData.ApiKeyClient
+	r.authTokenClient = providerData.AuthTokenClient
 }

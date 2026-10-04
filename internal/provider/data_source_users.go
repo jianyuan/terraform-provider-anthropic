@@ -3,11 +3,11 @@ package provider
 import (
 	"context"
 
+	"github.com/anthropics/anthropic-sdk-go"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
-	"github.com/jianyuan/terraform-provider-anthropic/internal/apiclient"
-	"github.com/jianyuan/terraform-provider-anthropic/internal/fwdiag"
+	"github.com/jianyuan/terraform-provider-anthropic/internal/fwdatasource"
 	supertypes "github.com/orange-cloudavenue/terraform-plugin-framework-supertypes"
 	"github.com/samber/lo"
 )
@@ -16,8 +16,8 @@ type UsersDataSourceModel struct {
 	Users supertypes.SetNestedObjectValueOf[UserDataSourceModel] `tfsdk:"users"`
 }
 
-func (m *UsersDataSourceModel) FromAPI(ctx context.Context, users []apiclient.User) (diags diag.Diagnostics) {
-	m.Users = supertypes.NewSetNestedObjectValueOfValueSlice(ctx, lo.Map(users, func(user apiclient.User, _ int) UserDataSourceModel {
+func (m *UsersDataSourceModel) FromAPI(ctx context.Context, users []anthropic.OrganizationUser) (diags diag.Diagnostics) {
+	m.Users = supertypes.NewSetNestedObjectValueOfValueSlice(ctx, lo.Map(users, func(user anthropic.OrganizationUser, _ int) UserDataSourceModel {
 		var mm UserDataSourceModel
 		diags.Append(mm.FromAPI(ctx, user)...)
 		return mm
@@ -79,41 +79,7 @@ func (d *UsersDataSource) Schema(ctx context.Context, req datasource.SchemaReque
 }
 
 func (d *UsersDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-	var data UsersDataSourceModel
-
-	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
-
-	var users []apiclient.User
-	params := &apiclient.ListUsersParams{
-		Limit: new(int64(100)),
-	}
-
-	for {
-		page := fwdiag.Merge(apiclient.ReadJSON200(d.client.ListUsersWithResponse(
-			ctx,
-			params,
-			d.WithApiKeyRequestEditorFn(),
-		)))(&resp.Diagnostics)
-		if resp.Diagnostics.HasError() {
-			return
-		}
-
-		users = append(users, page.Data...)
-
-		if v, err := page.LastId.Get(); err == nil {
-			params.AfterId = new(v)
-		} else {
-			break
-		}
-	}
-
-	resp.Diagnostics.Append(data.FromAPI(ctx, users)...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
-
-	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+	fwdatasource.List(ctx, func(_ *UsersDataSourceModel) fwdatasource.AutoPager[anthropic.OrganizationUser] {
+		return d.apiKeyClient.Organization.Users.ListAutoPaging(ctx, anthropic.OrganizationUserListParams{})
+	}, req, resp)
 }

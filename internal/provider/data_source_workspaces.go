@@ -3,10 +3,10 @@ package provider
 import (
 	"context"
 
+	"github.com/anthropics/anthropic-sdk-go"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
-	"github.com/jianyuan/terraform-provider-anthropic/internal/apiclient"
-	"github.com/jianyuan/terraform-provider-anthropic/internal/fwdiag"
+	"github.com/jianyuan/terraform-provider-anthropic/internal/fwdatasource"
 	supertypes "github.com/orange-cloudavenue/terraform-plugin-framework-supertypes"
 	"github.com/samber/lo"
 )
@@ -15,8 +15,8 @@ type WorkspacesDataSourceModel struct {
 	Workspaces supertypes.SetNestedObjectValueOf[WorkspaceModel] `tfsdk:"workspaces"`
 }
 
-func (m *WorkspacesDataSourceModel) FromAPI(ctx context.Context, workspaces []apiclient.Workspace) (diags diag.Diagnostics) {
-	m.Workspaces = supertypes.NewSetNestedObjectValueOfValueSlice(ctx, lo.Map(workspaces, func(workspace apiclient.Workspace, _ int) WorkspaceModel {
+func (m *WorkspacesDataSourceModel) FromAPI(ctx context.Context, workspaces []anthropic.Workspace) (diags diag.Diagnostics) {
+	m.Workspaces = supertypes.NewSetNestedObjectValueOfValueSlice(ctx, lo.Map(workspaces, func(workspace anthropic.Workspace, _ int) WorkspaceModel {
 		var mm WorkspaceModel
 		diags.Append(mm.FromAPI(ctx, workspace)...)
 		return mm
@@ -44,41 +44,7 @@ func (d *WorkspacesDataSource) Schema(ctx context.Context, req datasource.Schema
 }
 
 func (d *WorkspacesDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-	var data WorkspacesDataSourceModel
-
-	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
-
-	var workspaces []apiclient.Workspace
-	params := &apiclient.ListWorkspacesParams{
-		Limit: new(int64(100)),
-	}
-
-	for {
-		page := fwdiag.Merge(apiclient.ReadJSON200(d.client.ListWorkspacesWithResponse(
-			ctx,
-			params,
-			d.WithApiKeyRequestEditorFn(),
-		)))(&resp.Diagnostics)
-		if resp.Diagnostics.HasError() {
-			return
-		}
-
-		workspaces = append(workspaces, page.Data...)
-
-		if v, err := page.LastId.Get(); err == nil {
-			params.AfterId = new(v)
-		} else {
-			break
-		}
-	}
-
-	resp.Diagnostics.Append(data.FromAPI(ctx, workspaces)...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
-
-	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+	fwdatasource.List(ctx, func(_ *WorkspacesDataSourceModel) fwdatasource.AutoPager[anthropic.Workspace] {
+		return d.apiKeyClient.Organization.Workspaces.ListAutoPaging(ctx, anthropic.OrganizationWorkspaceListParams{})
+	}, req, resp)
 }

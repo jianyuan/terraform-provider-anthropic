@@ -2,14 +2,15 @@ package provider
 
 import (
 	"context"
-	"fmt"
 
+	"github.com/anthropics/anthropic-sdk-go"
+	"github.com/anthropics/anthropic-sdk-go/shared/constant"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/jianyuan/terraform-provider-anthropic/internal/apiclient"
 	"github.com/jianyuan/terraform-provider-anthropic/internal/fwdiag"
 	"github.com/jianyuan/terraform-provider-anthropic/internal/fwtypes"
 	supertypes "github.com/orange-cloudavenue/terraform-plugin-framework-supertypes"
+	"github.com/samber/lo"
 )
 
 type WorkspaceModel struct {
@@ -24,31 +25,31 @@ type WorkspaceModel struct {
 	Tags          supertypes.MapValueOf[string]                                     `tfsdk:"tags"`
 }
 
-func (m *WorkspaceModel) FromAPI(ctx context.Context, data apiclient.Workspace) (diags diag.Diagnostics) {
-	m.Id = types.StringValue(data.Id)
-	m.Name = types.StringValue(data.Name)
-	m.CreatedAt = types.StringValue(data.CreatedAt)
-	m.ArchivedAt = fwtypes.NullableStringValue(data.ArchivedAt)
-	m.DisplayColor = types.StringValue(data.DisplayColor)
-	m.CompartmentId = types.StringValue(data.CompartmentId)
+func (m *WorkspaceModel) FromAPI(ctx context.Context, data anthropic.Workspace) (diags diag.Diagnostics) {
+	m.Id = fwtypes.StringValue(data.ID, data.JSON.ID)
+	m.Name = fwtypes.StringValue(data.Name, data.JSON.Name)
+	m.CreatedAt = fwtypes.TimeValue(data.CreatedAt, data.JSON.CreatedAt)
+	m.ArchivedAt = fwtypes.TimeValue(data.ArchivedAt, data.JSON.ArchivedAt)
+	m.DisplayColor = fwtypes.StringValue(data.DisplayColor, data.JSON.DisplayColor)
+	m.CompartmentId = fwtypes.StringValue(data.CompartmentID, data.JSON.CompartmentID)
 	m.DataResidency = (func() supertypes.SingleNestedObjectValueOf[WorkspaceModelDataResidency] {
 		var mm WorkspaceModelDataResidency
 		diags.Append(mm.FromAPI(ctx, data.DataResidency)...)
 		return supertypes.NewSingleNestedObjectValueOf(ctx, &mm)
 	})()
-	m.ExternalKeyId = fwtypes.NullableStringValue(data.ExternalKeyId)
+	m.ExternalKeyId = fwtypes.StringValue(data.ExternalKeyID, data.JSON.ExternalKeyID)
 	m.Tags = fwdiag.Merge(supertypes.NewMapValueOfMap(ctx, data.Tags))(&diags)
 	return
 }
 
-func (m *WorkspaceModel) ToAPIForCreate(ctx context.Context) (*apiclient.CreateWorkspaceJSONRequestBody, diag.Diagnostics) {
+func (m *WorkspaceModel) ToAPIForCreate(ctx context.Context) (*anthropic.OrganizationWorkspaceNewParams, diag.Diagnostics) {
 	var diags diag.Diagnostics
-	body := apiclient.CreateWorkspaceJSONRequestBody{
+	body := anthropic.OrganizationWorkspaceNewParams{
 		Name: m.Name.ValueString(),
 	}
 
 	if fwtypes.IsKnown(m.ExternalKeyId) {
-		body.ExternalKeyId.Set(m.ExternalKeyId.ValueString())
+		body.ExternalKeyID = anthropic.String(m.ExternalKeyId.ValueString())
 	}
 
 	if fwtypes.IsKnown(m.Tags) {
@@ -57,7 +58,7 @@ func (m *WorkspaceModel) ToAPIForCreate(ctx context.Context) (*apiclient.CreateW
 			return nil, diags
 		}
 
-		body.Tags.Set(v)
+		body.Tags = v
 	}
 
 	if fwtypes.IsKnown(&m.DataResidency) {
@@ -71,16 +72,16 @@ func (m *WorkspaceModel) ToAPIForCreate(ctx context.Context) (*apiclient.CreateW
 			return nil, diags
 		}
 
-		body.DataResidency.Set(*vv)
+		body.DataResidency = *vv
 	}
 
 	return &body, diags
 }
 
-func (m *WorkspaceModel) ToAPIForUpdate(ctx context.Context) (*apiclient.UpdateWorkspaceJSONRequestBody, diag.Diagnostics) {
+func (m *WorkspaceModel) ToAPIForUpdate(ctx context.Context) (*anthropic.OrganizationWorkspaceUpdateParams, diag.Diagnostics) {
 	var diags diag.Diagnostics
-	body := apiclient.UpdateWorkspaceJSONRequestBody{
-		Name: m.Name.ValueStringPointer(),
+	body := anthropic.OrganizationWorkspaceUpdateParams{
+		Name: anthropic.String(m.Name.ValueString()),
 	}
 
 	if fwtypes.IsKnown(m.Tags) {
@@ -89,7 +90,7 @@ func (m *WorkspaceModel) ToAPIForUpdate(ctx context.Context) (*apiclient.UpdateW
 			return nil, diags
 		}
 
-		body.Tags.Set(v)
+		body.Tags = v
 	}
 
 	if fwtypes.IsKnown(&m.DataResidency) {
@@ -103,7 +104,7 @@ func (m *WorkspaceModel) ToAPIForUpdate(ctx context.Context) (*apiclient.UpdateW
 			return nil, diags
 		}
 
-		body.DataResidency.Set(*vv)
+		body.DataResidency = *vv
 	}
 
 	return &body, diags
@@ -115,23 +116,21 @@ type WorkspaceModelDataResidency struct {
 	WorkspaceGeo         types.String                                                                          `tfsdk:"workspace_geo"`
 }
 
-func (m *WorkspaceModelDataResidency) FromAPI(ctx context.Context, data apiclient.Workspace_DataResidency) (diags diag.Diagnostics) {
+func (m *WorkspaceModelDataResidency) FromAPI(ctx context.Context, data anthropic.DataResidency) (diags diag.Diagnostics) {
 	m.AllowedInferenceGeos = (func() supertypes.SingleNestedObjectValueOf[WorkspaceModelDataResidencyAllowedInferenceGeos] {
 		var mm WorkspaceModelDataResidencyAllowedInferenceGeos
-		diags.Append(mm.FromAPI(ctx, data)...)
+		diags.Append(mm.FromAPI(ctx, data.AllowedInferenceGeos)...)
 		return supertypes.NewSingleNestedObjectValueOf(ctx, &mm)
 	})()
-	m.DefaultInferenceGeo = types.StringValue(data.DefaultInferenceGeo)
-	m.WorkspaceGeo = types.StringValue(data.WorkspaceGeo)
+	m.DefaultInferenceGeo = fwtypes.StringValue(data.DefaultInferenceGeo, data.JSON.DefaultInferenceGeo)
+	m.WorkspaceGeo = fwtypes.StringValue(data.WorkspaceGeo, data.JSON.WorkspaceGeo)
 	return
 }
 
-func (m *WorkspaceModelDataResidency) ToAPIForCreate(ctx context.Context) (*apiclient.CreateWorkspaceRequest_DataResidency, diag.Diagnostics) {
+func (m *WorkspaceModelDataResidency) ToAPIForCreate(ctx context.Context) (*anthropic.DataResidencyCreateConfigParam, diag.Diagnostics) {
 	var diags diag.Diagnostics
-	var body apiclient.CreateWorkspaceRequest_DataResidency
+	var body anthropic.DataResidencyCreateConfigParam
 	if fwtypes.IsKnown(m.AllowedInferenceGeos) {
-		body.AllowedInferenceGeos = &apiclient.CreateWorkspaceRequest_DataResidency_AllowedInferenceGeos{}
-
 		mm := fwdiag.Merge(m.AllowedInferenceGeos.Get(ctx))(&diags)
 		if diags.HasError() {
 			return nil, diags
@@ -142,35 +141,30 @@ func (m *WorkspaceModelDataResidency) ToAPIForCreate(ctx context.Context) (*apic
 			if diags.HasError() {
 				return nil, diags
 			}
-			if err := body.AllowedInferenceGeos.FromCreateWorkspaceRequestDataResidencyAllowedInferenceGeos0(v); err != nil {
-				diags.AddError("Failed to convert AllowedInferenceGeos", err.Error())
-				return nil, diags
-			}
+
+			body.AllowedInferenceGeos.OfGeos = lo.Map(v, func(vv string, _ int) anthropic.AllowedInferenceGeo {
+				return anthropic.AllowedInferenceGeo(vv)
+			})
 		} else if fwtypes.IsKnown(mm.Unrestricted) && mm.Unrestricted.ValueBool() {
-			if err := body.AllowedInferenceGeos.FromCreateWorkspaceRequestDataResidencyAllowedInferenceGeos1(apiclient.CreateWorkspaceRequestDataResidencyAllowedInferenceGeos1Unrestricted); err != nil {
-				diags.AddError("Failed to convert AllowedInferenceGeos", err.Error())
-				return nil, diags
-			}
+			body.AllowedInferenceGeos.OfUnrestricted = constant.ValueOf[constant.Unrestricted]()
 		}
 	}
 
 	if fwtypes.IsKnown(m.DefaultInferenceGeo) {
-		body.DefaultInferenceGeo.Set(apiclient.CreateWorkspaceRequestDataResidencyDefaultInferenceGeo(m.DefaultInferenceGeo.ValueString()))
+		body.DefaultInferenceGeo = anthropic.DataResidencyCreateConfigDefaultInferenceGeo(m.DefaultInferenceGeo.ValueString())
 	}
 
 	if fwtypes.IsKnown(m.WorkspaceGeo) {
-		body.WorkspaceGeo.Set(apiclient.CreateWorkspaceRequestDataResidencyWorkspaceGeo(m.WorkspaceGeo.ValueString()))
+		body.WorkspaceGeo = anthropic.DataResidencyCreateConfigWorkspaceGeo(m.WorkspaceGeo.ValueString())
 	}
 
 	return &body, diags
 }
 
-func (m *WorkspaceModelDataResidency) ToAPIForUpdate(ctx context.Context) (*apiclient.UpdateWorkspaceRequest_DataResidency, diag.Diagnostics) {
+func (m *WorkspaceModelDataResidency) ToAPIForUpdate(ctx context.Context) (*anthropic.DataResidencyUpdateConfigParam, diag.Diagnostics) {
 	var diags diag.Diagnostics
-	var body apiclient.UpdateWorkspaceRequest_DataResidency
+	var body anthropic.DataResidencyUpdateConfigParam
 	if fwtypes.IsKnown(m.AllowedInferenceGeos) {
-		body.AllowedInferenceGeos = &apiclient.UpdateWorkspaceRequest_DataResidency_AllowedInferenceGeos{}
-
 		mm := fwdiag.Merge(m.AllowedInferenceGeos.Get(ctx))(&diags)
 		if diags.HasError() {
 			return nil, diags
@@ -181,20 +175,16 @@ func (m *WorkspaceModelDataResidency) ToAPIForUpdate(ctx context.Context) (*apic
 			if diags.HasError() {
 				return nil, diags
 			}
-			if err := body.AllowedInferenceGeos.FromUpdateWorkspaceRequestDataResidencyAllowedInferenceGeos0(v); err != nil {
-				diags.AddError("Failed to convert AllowedInferenceGeos", err.Error())
-				return nil, diags
-			}
+			body.AllowedInferenceGeos.OfGeos = lo.Map(v, func(vv string, _ int) anthropic.AllowedInferenceGeo {
+				return anthropic.AllowedInferenceGeo(vv)
+			})
 		} else if fwtypes.IsKnown(mm.Unrestricted) && mm.Unrestricted.ValueBool() {
-			if err := body.AllowedInferenceGeos.FromUpdateWorkspaceRequestDataResidencyAllowedInferenceGeos1(apiclient.UpdateWorkspaceRequestDataResidencyAllowedInferenceGeos1Unrestricted); err != nil {
-				diags.AddError("Failed to convert AllowedInferenceGeos", err.Error())
-				return nil, diags
-			}
+			body.AllowedInferenceGeos.OfUnrestricted = constant.ValueOf[constant.Unrestricted]()
 		}
 	}
 
 	if fwtypes.IsKnown(m.DefaultInferenceGeo) {
-		body.DefaultInferenceGeo.Set(apiclient.UpdateWorkspaceRequestDataResidencyDefaultInferenceGeo(m.DefaultInferenceGeo.ValueString()))
+		body.DefaultInferenceGeo = anthropic.DataResidencyUpdateConfigDefaultInferenceGeo(m.DefaultInferenceGeo.ValueString())
 	}
 
 	return &body, diags
@@ -205,14 +195,14 @@ type WorkspaceModelDataResidencyAllowedInferenceGeos struct {
 	Unrestricted types.Bool                    `tfsdk:"unrestricted"`
 }
 
-func (m *WorkspaceModelDataResidencyAllowedInferenceGeos) FromAPI(ctx context.Context, data apiclient.Workspace_DataResidency) (diags diag.Diagnostics) {
-	if v, err := data.AllowedInferenceGeos.AsWorkspaceDataResidencyAllowedInferenceGeos0(); err == nil {
-		fmt.Println(v)
-		m.Values = supertypes.NewSetValueOfSlice(ctx, v)
-		m.Unrestricted = types.BoolValue(false)
-	} else if v, err := data.AllowedInferenceGeos.AsWorkspaceDataResidencyAllowedInferenceGeos1(); err == nil {
+func (m *WorkspaceModelDataResidencyAllowedInferenceGeos) FromAPI(ctx context.Context, data anthropic.DataResidencyAllowedInferenceGeosUnion) (diags diag.Diagnostics) {
+	if data.JSON.OfGeos.Valid() {
+		m.Values = supertypes.NewSetValueOfSlice(ctx, lo.Map(data.OfGeos, func(v anthropic.AllowedInferenceGeo, _ int) string {
+			return string(v)
+		}))
+	} else {
 		m.Values = supertypes.NewSetValueOfNull[string](ctx)
-		m.Unrestricted = types.BoolValue(v == apiclient.WorkspaceDataResidencyAllowedInferenceGeos1Unrestricted)
 	}
+	m.Unrestricted = types.BoolValue(data.JSON.OfUnrestricted.Valid())
 	return
 }

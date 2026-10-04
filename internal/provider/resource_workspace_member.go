@@ -3,14 +3,13 @@ package provider
 import (
 	"context"
 	"fmt"
-	"net/http"
 	"time"
 
-	retry "github.com/avast/retry-go/v5"
+	"github.com/anthropics/anthropic-sdk-go"
+	"github.com/avast/retry-go/v5"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
-	"github.com/jianyuan/terraform-provider-anthropic/internal/apiclient"
-	"github.com/jianyuan/terraform-provider-anthropic/internal/fwdiag"
+	"github.com/jianyuan/terraform-provider-anthropic/internal/fwresource"
 	"github.com/jianyuan/terraform-provider-anthropic/internal/fwtypes"
 )
 
@@ -35,129 +34,55 @@ func (r *WorkspaceMemberResource) Schema(ctx context.Context, req resource.Schem
 }
 
 func (r *WorkspaceMemberResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	var data WorkspaceMemberModel
-
-	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
-
-	body := apiclient.CreateWorkspaceMemberJSONRequestBody{
-		UserId:        data.UserId.ValueString(),
-		WorkspaceRole: apiclient.CreateWorkspaceMemberRequestWorkspaceRole(data.WorkspaceRole.ValueString()),
-	}
-
-	member := fwdiag.Merge(apiclient.CreateJSON200(r.client.CreateWorkspaceMemberWithResponse(
-		ctx,
-		data.WorkspaceId.ValueString(),
-		body,
-		r.WithApiKeyRequestEditorFn(),
-	)))(&resp.Diagnostics)
-	if resp.Diagnostics.HasError() {
-		return
-	}
-
-	resp.Diagnostics.Append(data.FromAPI(ctx, *member)...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
-
-	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+	fwresource.Create(ctx, func(data *WorkspaceMemberModel, body *anthropic.OrganizationWorkspaceMemberAddParams) (*anthropic.WorkspaceMember, error) {
+		return r.apiKeyClient.Organization.Workspaces.Members.Add(ctx, data.WorkspaceId.ValueString(), *body)
+	}, req, resp)
 }
 
 func (r *WorkspaceMemberResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	var data WorkspaceMemberModel
-
-	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
-
-	var httpResp *apiclient.GetWorkspaceMemberResponse
-	err := retry.New(
-		retry.Context(ctx),
-		retry.Attempts(10),
-		retry.Delay(3*time.Second),
-	).Do(func() error {
-		var err error
-		httpResp, err = r.client.GetWorkspaceMemberWithResponse(
-			ctx,
-			data.WorkspaceId.ValueString(),
-			data.UserId.ValueString(),
-			r.WithApiKeyRequestEditorFn(),
-		)
-		if err != nil {
-			return err
-		} else if httpResp.StatusCode() != http.StatusOK {
-			return fmt.Errorf("status code %d: %s", httpResp.StatusCode(), string(httpResp.Body))
-		} else if httpResp.JSON200 == nil {
-			return fmt.Errorf("empty response body")
-		} else if fwtypes.IsKnown(data.WorkspaceRole) && string(httpResp.JSON200.WorkspaceRole) != data.WorkspaceRole.ValueString() {
-			return fmt.Errorf("unexpected workspace role: %s, expected: %s", httpResp.JSON200.WorkspaceRole, data.WorkspaceRole.ValueString())
-		}
-		return nil
-	})
-	if err != nil {
-		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to read, got error: %s", err))
-		return
-	} else if httpResp == nil {
-		resp.Diagnostics.AddError("Client Error", "Unable to read, got empty response body")
-		return
-	}
-
-	resp.Diagnostics.Append(data.FromAPI(ctx, *httpResp.JSON200)...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
-
-	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+	fwresource.Read(ctx, func(data *WorkspaceMemberModel) (*anthropic.WorkspaceMember, error) {
+		var item *anthropic.WorkspaceMember
+		err := retry.New(
+			retry.Context(ctx),
+			retry.Attempts(10),
+			retry.Delay(3*time.Second),
+		).Do(func() error {
+			var err error
+			item, err = r.apiKeyClient.Organization.Workspaces.Members.Get(
+				ctx,
+				data.UserId.ValueString(),
+				anthropic.OrganizationWorkspaceMemberGetParams{
+					WorkspaceID: data.WorkspaceId.ValueString(),
+				},
+			)
+			if err != nil {
+				return err
+			} else if fwtypes.IsKnown(data.WorkspaceRole) && (!item.JSON.WorkspaceRole.Valid() || string(item.WorkspaceRole) != data.WorkspaceRole.ValueString()) {
+				return fmt.Errorf("unexpected workspace role: %s, expected: %s", item.WorkspaceRole, data.WorkspaceRole.ValueString())
+			}
+			return nil
+		})
+		return item, err
+	}, req, resp)
 }
 
 func (r *WorkspaceMemberResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var data WorkspaceMemberModel
-
-	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
-
-	body := apiclient.UpdateWorkspaceMemberJSONRequestBody{
-		WorkspaceRole: apiclient.UpdateWorkspaceMemberRequestWorkspaceRole(data.WorkspaceRole.ValueString()),
-	}
-
-	member := fwdiag.Merge(apiclient.UpdateJSON200(r.client.UpdateWorkspaceMemberWithResponse(
-		ctx,
-		data.WorkspaceId.ValueString(),
-		data.UserId.ValueString(),
-		body,
-		r.WithApiKeyRequestEditorFn(),
-	)))(&resp.Diagnostics)
-	if resp.Diagnostics.HasError() {
-		return
-	}
-
-	resp.Diagnostics.Append(data.FromAPI(ctx, *member)...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
-
-	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+	fwresource.Update(ctx, func(data *WorkspaceMemberModel, body *anthropic.OrganizationWorkspaceMemberUpdateParams) (*anthropic.WorkspaceMember, error) {
+		return r.apiKeyClient.Organization.Workspaces.Members.Update(ctx, data.UserId.ValueString(), *body)
+	}, req, resp)
 }
 
 func (r *WorkspaceMemberResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-	var data WorkspaceMemberModel
-
-	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
-
-	_ = fwdiag.Merge(apiclient.DeleteJSON200(r.client.DeleteWorkspaceMemberWithResponse(
-		ctx,
-		data.WorkspaceId.ValueString(),
-		data.UserId.ValueString(),
-		r.WithApiKeyRequestEditorFn(),
-	)))(&resp.Diagnostics)
+	fwresource.Delete(ctx, func(data *WorkspaceMemberModel) error {
+		_, err := r.apiKeyClient.Organization.Workspaces.Members.Remove(
+			ctx,
+			data.UserId.ValueString(),
+			anthropic.OrganizationWorkspaceMemberRemoveParams{
+				WorkspaceID: data.WorkspaceId.ValueString(),
+			},
+		)
+		return err
+	}, req, resp)
 }
 
 func (r *WorkspaceMemberResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
