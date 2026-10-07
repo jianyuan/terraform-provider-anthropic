@@ -3,10 +3,10 @@ package provider
 import (
 	"context"
 
+	"github.com/anthropics/anthropic-sdk-go"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
-	"github.com/jianyuan/terraform-provider-anthropic/internal/apiclient"
-	"github.com/jianyuan/terraform-provider-anthropic/internal/fwdiag"
+	"github.com/jianyuan/terraform-provider-anthropic/internal/fwdatasource"
 	supertypes "github.com/orange-cloudavenue/terraform-plugin-framework-supertypes"
 	"github.com/samber/lo"
 )
@@ -15,8 +15,8 @@ type ServiceAccountsDataSourceModel struct {
 	ServiceAccounts supertypes.SetNestedObjectValueOf[ServiceAccountModel] `tfsdk:"service_accounts"`
 }
 
-func (m *ServiceAccountsDataSourceModel) FromAPI(ctx context.Context, serviceAccounts []apiclient.ServiceAccount) (diags diag.Diagnostics) {
-	m.ServiceAccounts = supertypes.NewSetNestedObjectValueOfValueSlice(ctx, lo.Map(serviceAccounts, func(sa apiclient.ServiceAccount, _ int) ServiceAccountModel {
+func (m *ServiceAccountsDataSourceModel) FromAPI(ctx context.Context, serviceAccounts []anthropic.ServiceAccount) (diags diag.Diagnostics) {
+	m.ServiceAccounts = supertypes.NewSetNestedObjectValueOfValueSlice(ctx, lo.Map(serviceAccounts, func(sa anthropic.ServiceAccount, _ int) ServiceAccountModel {
 		var mm ServiceAccountModel
 		diags.Append(mm.FromAPI(ctx, sa)...)
 		return mm
@@ -44,41 +44,7 @@ func (d *ServiceAccountsDataSource) Schema(ctx context.Context, req datasource.S
 }
 
 func (d *ServiceAccountsDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-	var data ServiceAccountsDataSourceModel
-
-	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
-
-	var serviceAccounts []apiclient.ServiceAccount
-	params := &apiclient.ListServiceAccountsParams{
-		Limit: new(int64(100)),
-	}
-
-	for {
-		page := fwdiag.Merge(apiclient.ReadJSON200(d.client.ListServiceAccountsWithResponse(
-			ctx,
-			params,
-			d.WithAuthTokenRequestEditorFn(),
-		)))(&resp.Diagnostics)
-		if resp.Diagnostics.HasError() {
-			return
-		}
-
-		serviceAccounts = append(serviceAccounts, page.Data...)
-
-		if v, err := page.NextPage.Get(); err == nil {
-			params.Page = new(v)
-		} else {
-			break
-		}
-	}
-
-	resp.Diagnostics.Append(data.FromAPI(ctx, serviceAccounts)...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
-
-	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+	fwdatasource.List(ctx, func(_ *ServiceAccountsDataSourceModel) fwdatasource.AutoPager[anthropic.ServiceAccount] {
+		return d.authTokenClient.Organization.ServiceAccounts.ListAutoPaging(ctx, anthropic.OrganizationServiceAccountListParams{})
+	}, req, resp)
 }

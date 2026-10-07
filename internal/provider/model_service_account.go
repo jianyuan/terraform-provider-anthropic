@@ -3,9 +3,9 @@ package provider
 import (
 	"context"
 
+	"github.com/anthropics/anthropic-sdk-go"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/jianyuan/terraform-provider-anthropic/internal/apiclient"
 	"github.com/jianyuan/terraform-provider-anthropic/internal/fwtypes"
 )
 
@@ -22,47 +22,47 @@ type ServiceAccountModel struct {
 	UpdatedByActorId  types.String `tfsdk:"updated_by_actor_id"`
 }
 
-func (m *ServiceAccountModel) FromAPI(ctx context.Context, data apiclient.ServiceAccount) (diags diag.Diagnostics) {
-	m.Id = types.StringValue(data.Id)
-	m.Name = types.StringValue(data.Name)
-	m.Description = fwtypes.NullableStringValue(data.Description)
-	m.OrganizationRole = types.StringValue(string(data.OrganizationRole))
-	m.ArchivedAt = fwtypes.NullableStringValue(data.ArchivedAt)
-	m.ArchivedByActorId = fwtypes.NullableStringValue(data.ArchivedByActorId)
-	m.CreatedAt = types.StringValue(data.CreatedAt)
-	m.CreatedByActorId = fwtypes.NullableStringValue(data.CreatedByActorId)
-	m.UpdatedAt = types.StringValue(data.UpdatedAt)
-	m.UpdatedByActorId = fwtypes.NullableStringValue(data.UpdatedByActorId)
+func (m *ServiceAccountModel) FromAPI(ctx context.Context, data anthropic.ServiceAccount) (diags diag.Diagnostics) {
+	m.Id = fwtypes.StringValue(data.ID, data.JSON.ID)
+	m.Name = fwtypes.StringValue(data.Name, data.JSON.Name)
+	m.Description = fwtypes.StringValue(data.Description, data.JSON.Description)
+	m.OrganizationRole = fwtypes.StringValue(data.OrganizationRole, data.JSON.OrganizationRole)
+	m.ArchivedAt = fwtypes.TimeValue(data.ArchivedAt, data.JSON.ArchivedAt)
+	m.ArchivedByActorId = fwtypes.StringValue(data.ArchivedByActorID, data.JSON.ArchivedByActorID)
+	m.CreatedAt = fwtypes.TimeValue(data.CreatedAt, data.JSON.CreatedAt)
+	m.CreatedByActorId = fwtypes.StringValue(data.CreatedByActorID, data.JSON.CreatedByActorID)
+	m.UpdatedAt = fwtypes.TimeValue(data.UpdatedAt, data.JSON.UpdatedAt)
+	m.UpdatedByActorId = fwtypes.StringValue(data.UpdatedByActorID, data.JSON.UpdatedByActorID)
 	return
 }
 
-func (m *ServiceAccountModel) ToAPIForCreate(ctx context.Context) (*apiclient.CreateServiceAccountJSONRequestBody, diag.Diagnostics) {
+func (m *ServiceAccountModel) ToAPIForCreate(ctx context.Context) (*anthropic.OrganizationServiceAccountNewParams, diag.Diagnostics) {
 	var diags diag.Diagnostics
-	body := apiclient.CreateServiceAccountJSONRequestBody{
+	body := anthropic.OrganizationServiceAccountNewParams{
 		Name: m.Name.ValueString(),
 	}
 
 	if fwtypes.IsKnown(m.Description) {
-		body.Description.Set(m.Description.ValueString())
+		body.Description = anthropic.String(m.Description.ValueString())
 	}
 
 	if fwtypes.IsKnown(m.OrganizationRole) {
-		body.OrganizationRole = new(apiclient.CreateServiceAccountRequestOrganizationRole(m.OrganizationRole.ValueString()))
+		body.OrganizationRole = anthropic.OrganizationServiceAccountNewParamsOrganizationRole(m.OrganizationRole.ValueString())
 	}
 
 	return &body, diags
 }
 
-func (m *ServiceAccountModel) ToAPIForUpdate(ctx context.Context) (*apiclient.UpdateServiceAccountJSONRequestBody, diag.Diagnostics) {
+func (m *ServiceAccountModel) ToAPIForUpdate(ctx context.Context) (*anthropic.OrganizationServiceAccountUpdateParams, diag.Diagnostics) {
 	var diags diag.Diagnostics
-	body := apiclient.UpdateServiceAccountJSONRequestBody{}
+	body := anthropic.OrganizationServiceAccountUpdateParams{}
 
 	if fwtypes.IsKnown(m.Description) {
-		body.Description.Set(m.Description.ValueString())
+		body.Description = anthropic.String(m.Description.ValueString())
 	}
 
 	if fwtypes.IsKnown(m.OrganizationRole) {
-		body.OrganizationRole.Set(apiclient.UpdateServiceAccountRequestOrganizationRole(m.OrganizationRole.ValueString()))
+		body.OrganizationRole = anthropic.OrganizationServiceAccountUpdateParamsOrganizationRole(m.OrganizationRole.ValueString())
 	}
 
 	return &body, diags

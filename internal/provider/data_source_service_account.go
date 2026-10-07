@@ -3,9 +3,9 @@ package provider
 import (
 	"context"
 
+	"github.com/anthropics/anthropic-sdk-go"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
-	"github.com/jianyuan/terraform-provider-anthropic/internal/apiclient"
-	"github.com/jianyuan/terraform-provider-anthropic/internal/fwdiag"
+	"github.com/jianyuan/terraform-provider-anthropic/internal/fwdatasource"
 )
 
 var _ datasource.DataSource = &ServiceAccountDataSource{}
@@ -28,27 +28,7 @@ func (d *ServiceAccountDataSource) Schema(ctx context.Context, req datasource.Sc
 }
 
 func (d *ServiceAccountDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-	var data ServiceAccountModel
-
-	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
-
-	sa := fwdiag.Merge(apiclient.ReadJSON200(d.client.GetServiceAccountWithResponse(
-		ctx,
-		data.Id.ValueString(),
-		nil,
-		d.WithAuthTokenRequestEditorFn(),
-	)))(&resp.Diagnostics)
-	if resp.Diagnostics.HasError() {
-		return
-	}
-
-	resp.Diagnostics.Append(data.FromAPI(ctx, *sa)...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
-
-	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+	fwdatasource.Read(ctx, func(data *ServiceAccountModel) (*anthropic.ServiceAccount, error) {
+		return d.authTokenClient.Organization.ServiceAccounts.Get(ctx, data.Id.ValueString())
+	}, req, resp)
 }

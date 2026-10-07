@@ -3,10 +3,10 @@ package provider
 import (
 	"context"
 
+	"github.com/anthropics/anthropic-sdk-go"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
-	"github.com/jianyuan/terraform-provider-anthropic/internal/apiclient"
-	"github.com/jianyuan/terraform-provider-anthropic/internal/fwdiag"
+	"github.com/jianyuan/terraform-provider-anthropic/internal/fwresource"
 )
 
 var _ resource.Resource = &WorkspaceResource{}
@@ -30,105 +30,28 @@ func (r *WorkspaceResource) Schema(ctx context.Context, req resource.SchemaReque
 }
 
 func (r *WorkspaceResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	var data WorkspaceModel
-
-	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
-
-	body := fwdiag.Merge(data.ToAPIForCreate(ctx))(&resp.Diagnostics)
-	if resp.Diagnostics.HasError() {
-		return
-	}
-
-	workspace := fwdiag.Merge(apiclient.CreateJSON200(r.client.CreateWorkspaceWithResponse(
-		ctx,
-		nil,
-		*body,
-		r.WithApiKeyRequestEditorFn(),
-	)))(&resp.Diagnostics)
-	if resp.Diagnostics.HasError() {
-		return
-	}
-
-	resp.Diagnostics.Append(data.FromAPI(ctx, *workspace)...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
-
-	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+	fwresource.Create(ctx, func(_ *WorkspaceModel, body *anthropic.OrganizationWorkspaceNewParams) (*anthropic.Workspace, error) {
+		return r.apiKeyClient.Organization.Workspaces.New(ctx, *body)
+	}, req, resp)
 }
 
 func (r *WorkspaceResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	var data WorkspaceModel
-
-	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
-
-	workspace := fwdiag.Merge(apiclient.ReadJSON200(r.client.GetWorkspaceWithResponse(
-		ctx,
-		data.Id.ValueString(),
-		r.WithApiKeyRequestEditorFn(),
-	)))(&resp.Diagnostics)
-	if resp.Diagnostics.HasError() {
-		return
-	}
-
-	resp.Diagnostics.Append(data.FromAPI(ctx, *workspace)...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
-
-	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+	fwresource.Read(ctx, func(data *WorkspaceModel) (*anthropic.Workspace, error) {
+		return r.apiKeyClient.Organization.Workspaces.Get(ctx, data.Id.ValueString())
+	}, req, resp)
 }
 
 func (r *WorkspaceResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var data WorkspaceModel
-
-	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
-
-	body := fwdiag.Merge(data.ToAPIForUpdate(ctx))(&resp.Diagnostics)
-	if resp.Diagnostics.HasError() {
-		return
-	}
-
-	workspace := fwdiag.Merge(apiclient.UpdateJSON200(r.client.UpdateWorkspaceWithResponse(
-		ctx,
-		data.Id.ValueString(),
-		*body,
-		r.WithApiKeyRequestEditorFn(),
-	)))(&resp.Diagnostics)
-	if resp.Diagnostics.HasError() {
-		return
-	}
-
-	resp.Diagnostics.Append(data.FromAPI(ctx, *workspace)...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
-
-	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+	fwresource.Update(ctx, func(data *WorkspaceModel, body *anthropic.OrganizationWorkspaceUpdateParams) (*anthropic.Workspace, error) {
+		return r.apiKeyClient.Organization.Workspaces.Update(ctx, data.Id.ValueString(), *body)
+	}, req, resp)
 }
 
 func (r *WorkspaceResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-	var data WorkspaceModel
-
-	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
-
-	_ = fwdiag.Merge(apiclient.DeleteJSON200(r.client.ArchiveWorkspaceWithResponse(
-		ctx,
-		data.Id.ValueString(),
-		r.WithApiKeyRequestEditorFn(),
-	)))(&resp.Diagnostics)
+	fwresource.Delete(ctx, func(data *WorkspaceModel) error {
+		_, err := r.apiKeyClient.Organization.Workspaces.Archive(ctx, data.Id.ValueString())
+		return err
+	}, req, resp)
 }
 
 func (r *WorkspaceResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {

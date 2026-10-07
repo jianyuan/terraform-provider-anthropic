@@ -4,17 +4,16 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"net/http"
 	"strings"
 	"testing"
 
+	"github.com/anthropics/anthropic-sdk-go"
 	sdkacctest "github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/knownvalue"
 	"github.com/hashicorp/terraform-plugin-testing/statecheck"
 	"github.com/hashicorp/terraform-plugin-testing/tfjsonpath"
 	"github.com/jianyuan/terraform-provider-anthropic/internal/acctest"
-	"github.com/jianyuan/terraform-provider-anthropic/internal/apiclient"
 )
 
 func init() {
@@ -23,48 +22,32 @@ func init() {
 		F: func(r string) error {
 			ctx := context.Background()
 
-			params := &apiclient.ListWorkspacesParams{
-				Limit: new(int64(100)),
+			iter := acctest.SharedApiKeyClient.Organization.Workspaces.ListAutoPaging(ctx, anthropic.OrganizationWorkspaceListParams{})
+
+			for iter.Next() {
+				workspace := iter.Current()
+
+				if !strings.HasPrefix(workspace.Name, "tf-") {
+					continue
+				}
+
+				log.Printf("[INFO] Destroying workspace %s", workspace.ID)
+
+				_, err := acctest.SharedApiKeyClient.Organization.Workspaces.Archive(
+					ctx,
+					workspace.ID,
+				)
+
+				if err != nil {
+					log.Printf("[ERROR] Unable to archive workspace %s: %s", workspace.ID, err)
+					continue
+				}
+
+				log.Printf("[INFO] Archived workspace %s", workspace.ID)
 			}
 
-			for {
-				httpResp, err := acctest.SharedClient.ListWorkspacesWithResponse(
-					ctx,
-					params,
-				)
-				if err != nil {
-					return fmt.Errorf("Unable to read, got error: %s", err)
-				}
-
-				if httpResp.StatusCode() != http.StatusOK {
-					return fmt.Errorf("Unable to read, got status code %d: %s", httpResp.StatusCode(), string(httpResp.Body))
-				}
-
-				for _, workspace := range httpResp.JSON200.Data {
-					if !strings.HasPrefix(workspace.Name, "tf-") {
-						continue
-					}
-
-					log.Printf("[INFO] Destroying workspace %s", workspace.Id)
-
-					_, err := acctest.SharedClient.ArchiveWorkspaceWithResponse(
-						ctx,
-						workspace.Id,
-					)
-
-					if err != nil {
-						log.Printf("[ERROR] Unable to archive workspace %s: %s", workspace.Id, err)
-						continue
-					}
-
-					log.Printf("[INFO] Archived workspace %s", workspace.Id)
-				}
-
-				if v, err := httpResp.JSON200.LastId.Get(); err == nil {
-					params.AfterId = new(v)
-				} else {
-					break
-				}
+			if err := iter.Err(); err != nil {
+				log.Printf("[ERROR] Unable to list workspaces: %s", err)
 			}
 
 			return nil

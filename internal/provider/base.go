@@ -5,13 +5,14 @@ import (
 	"errors"
 	"net/http"
 
-	"github.com/jianyuan/terraform-provider-anthropic/internal/apiclient"
+	"github.com/anthropics/anthropic-sdk-go"
 )
 
 type base struct {
-	apiKey    string
-	authToken string
-	client    *apiclient.ClientWithResponses
+	apiKey          string
+	authToken       string
+	apiKeyClient    *anthropic.Client
+	authTokenClient *anthropic.Client
 }
 
 func (b *base) WithApiKeyRequestEditorFn() func(ctx context.Context, req *http.Request) error {

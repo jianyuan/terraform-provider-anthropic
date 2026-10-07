@@ -6,6 +6,8 @@ import (
 	"os"
 	"strings"
 
+	"github.com/anthropics/anthropic-sdk-go"
+	"github.com/anthropics/anthropic-sdk-go/option"
 	"github.com/hashicorp/go-retryablehttp"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/function"
@@ -14,7 +16,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/logging"
-	"github.com/jianyuan/terraform-provider-anthropic/internal/apiclient"
 	"github.com/jianyuan/terraform-provider-anthropic/internal/providerdata"
 )
 
@@ -72,13 +73,24 @@ func (p *AnthropicProvider) Configure(ctx context.Context, req provider.Configur
 		return
 	}
 
+	options := []option.RequestOption{
+		option.WithoutEnvironmentDefaults(),
+	}
+
 	var baseUrl string
 	if !data.BaseUrl.IsNull() {
+		options = append(options, option.WithBaseURL(data.BaseUrl.ValueString()))
 		baseUrl = data.BaseUrl.ValueString()
 	} else if v := os.Getenv("ANTHROPIC_BASE_URL"); v != "" {
+		options = append(options, option.WithBaseURL(v))
 		baseUrl = v
 	} else {
 		baseUrl = "https://api.anthropic.com"
+	}
+
+	if baseUrl == "" {
+		resp.Diagnostics.AddError("base_url is required", "base_url is required")
+		return
 	}
 
 	var apiKey string
@@ -105,11 +117,6 @@ func (p *AnthropicProvider) Configure(ctx context.Context, req provider.Configur
 		return
 	}
 
-	if baseUrl == "" {
-		resp.Diagnostics.AddError("base_url is required", "base_url is required")
-		return
-	}
-
 	transport := http.DefaultTransport
 
 	// Logging
@@ -123,23 +130,16 @@ func (p *AnthropicProvider) Configure(ctx context.Context, req provider.Configur
 	retryClient.RetryMax = 10
 	transport = retryClient.StandardClient().Transport
 
-	client, err := apiclient.NewClientWithResponses(
-		baseUrl,
-		apiclient.WithHTTPClient(&http.Client{Transport: transport}),
-		apiclient.WithRequestEditorFn(func(ctx context.Context, req *http.Request) error {
-			req.Header.Set("anthropic-version", "2023-06-01")
-			return nil
-		}),
-	)
-	if err != nil {
-		resp.Diagnostics.AddError("failed to create API client", err.Error())
-		return
-	}
+	options = append(options, option.WithHTTPClient(&http.Client{Transport: transport}))
+
+	apiKeyClient := anthropic.NewClient(append(options, option.WithAPIKey(apiKey))...)
+	authTokenClient := anthropic.NewClient(append(options, option.WithAuthToken(authToken))...)
 
 	providerData := &providerdata.ProviderData{
-		ApiKey:    apiKey,
-		AuthToken: authToken,
-		Client:    client,
+		ApiKey:          apiKey,
+		AuthToken:       authToken,
+		ApiKeyClient:    &apiKeyClient,
+		AuthTokenClient: &authTokenClient,
 	}
 
 	resp.DataSourceData = providerData

@@ -3,6 +3,7 @@ package provider
 import (
 	"context"
 
+	"github.com/anthropics/anthropic-sdk-go"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/jianyuan/terraform-provider-anthropic/internal/apiclient"
@@ -38,23 +39,20 @@ func (r *OrganizationInviteResource) Create(ctx context.Context, req resource.Cr
 		return
 	}
 
-	body := apiclient.CreateInviteJSONRequestBody{
+	body := anthropic.OrganizationInviteNewParams{
 		Email: data.Email.ValueString(),
-		Role:  apiclient.CreateInviteRequestRole(data.Role.ValueString()),
+		Role:  anthropic.OrganizationInviteNewParamsRole(data.Role.ValueString()),
 	}
 	if fwtypes.IsKnown(data.RbacGroupIds) {
-		body.RbacGroupIds = new(fwdiag.Merge(data.RbacGroupIds.Get(ctx))(&resp.Diagnostics))
+		body.RBACGroupIDs = fwdiag.Merge(data.RbacGroupIds.Get(ctx))(&resp.Diagnostics)
 	}
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	invite := fwdiag.Merge(apiclient.CreateJSON200(r.client.CreateInviteWithResponse(
-		ctx,
-		body,
-		r.WithApiKeyRequestEditorFn(),
-	)))(&resp.Diagnostics)
-	if resp.Diagnostics.HasError() {
+	invite, err := r.apiKeyClient.Organization.Invites.New(ctx, body)
+	if err != nil {
+		resp.Diagnostics.Append(fwdiag.NewResourceCreateErrorDiagnostic(err))
 		return
 	}
 
@@ -74,14 +72,12 @@ func (r *OrganizationInviteResource) Read(ctx context.Context, req resource.Read
 		return
 	}
 
-	invite := fwdiag.Merge(apiclient.ReadJSON200(r.client.GetInviteWithResponse(
-		ctx,
-		data.Id.ValueString(),
-		r.WithApiKeyRequestEditorFn(),
-	)))(&resp.Diagnostics)
-	if resp.Diagnostics.HasError() {
-		if resp.Diagnostics.Contains(fwdiag.ErrorDiagnosticNotFound) {
+	invite, err := r.apiKeyClient.Organization.Invites.Get(ctx, data.Id.ValueString())
+	if err != nil {
+		if apiclient.IsNotFoundError(err) {
 			resp.State.RemoveResource(ctx)
+		} else {
+			resp.Diagnostics.Append(fwdiag.NewResourceReadErrorDiagnostic(err))
 		}
 		return
 	}
@@ -107,11 +103,12 @@ func (r *OrganizationInviteResource) Delete(ctx context.Context, req resource.De
 		return
 	}
 
-	_ = fwdiag.Merge(apiclient.DeleteJSON200(r.client.DeleteInviteWithResponse(
-		ctx,
-		data.Id.ValueString(),
-		r.WithApiKeyRequestEditorFn(),
-	)))(&resp.Diagnostics)
+	_, err := r.apiKeyClient.Organization.Invites.Delete(ctx, data.Id.ValueString())
+	if err != nil {
+		if !apiclient.IsNotFoundError(err) {
+			resp.Diagnostics.Append(fwdiag.NewResourceDeleteErrorDiagnostic(err))
+		}
+	}
 }
 
 func (r *OrganizationInviteResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {

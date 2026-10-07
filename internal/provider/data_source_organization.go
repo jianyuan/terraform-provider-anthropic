@@ -3,12 +3,13 @@ package provider
 import (
 	"context"
 
+	"github.com/anthropics/anthropic-sdk-go"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/jianyuan/terraform-provider-anthropic/internal/apiclient"
-	"github.com/jianyuan/terraform-provider-anthropic/internal/fwdiag"
+	"github.com/jianyuan/terraform-provider-anthropic/internal/fwdatasource"
+	"github.com/jianyuan/terraform-provider-anthropic/internal/fwtypes"
 )
 
 type OrganizationDataSourceModel struct {
@@ -16,9 +17,9 @@ type OrganizationDataSourceModel struct {
 	Name types.String `tfsdk:"name"`
 }
 
-func (m *OrganizationDataSourceModel) FromAPI(org apiclient.Organization) (diags diag.Diagnostics) {
-	m.ID = types.StringValue(org.Id.String())
-	m.Name = types.StringValue(org.Name)
+func (m *OrganizationDataSourceModel) FromAPI(ctx context.Context, org anthropic.OrganizationInfo) (diags diag.Diagnostics) {
+	m.ID = fwtypes.StringValue(org.ID, org.JSON.ID)
+	m.Name = fwtypes.StringValue(org.Name, org.JSON.Name)
 	return
 }
 
@@ -55,25 +56,7 @@ func (d *OrganizationDataSource) Schema(ctx context.Context, req datasource.Sche
 }
 
 func (d *OrganizationDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-	var data OrganizationDataSourceModel
-
-	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
-
-	org := fwdiag.Merge(apiclient.ReadJSON200(d.client.GetCurrentOrganizationWithResponse(
-		ctx,
-		d.WithApiKeyRequestEditorFn(),
-	)))(&resp.Diagnostics)
-	if resp.Diagnostics.HasError() {
-		return
-	}
-
-	resp.Diagnostics.Append(data.FromAPI(*org)...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
-
-	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+	fwdatasource.Read(ctx, func(_ *OrganizationDataSourceModel) (*anthropic.OrganizationInfo, error) {
+		return d.apiKeyClient.Organization.Get(ctx)
+	}, req, resp)
 }

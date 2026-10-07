@@ -31,5 +31,6 @@ func (d *baseDataSource) Configure(ctx context.Context, req datasource.Configure
 
 	d.apiKey = providerData.ApiKey
 	d.authToken = providerData.AuthToken
-	d.client = providerData.Client
+	d.apiKeyClient = providerData.ApiKeyClient
+	d.authTokenClient = providerData.AuthTokenClient
 }

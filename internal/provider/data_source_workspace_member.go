@@ -3,9 +3,9 @@ package provider
 import (
 	"context"
 
+	"github.com/anthropics/anthropic-sdk-go"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
-	"github.com/jianyuan/terraform-provider-anthropic/internal/apiclient"
-	"github.com/jianyuan/terraform-provider-anthropic/internal/fwdiag"
+	"github.com/jianyuan/terraform-provider-anthropic/internal/fwdatasource"
 )
 
 var _ datasource.DataSource = &WorkspaceMemberDataSource{}
@@ -28,27 +28,13 @@ func (d *WorkspaceMemberDataSource) Schema(ctx context.Context, req datasource.S
 }
 
 func (d *WorkspaceMemberDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-	var data WorkspaceMemberModel
-
-	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
-
-	member := fwdiag.Merge(apiclient.ReadJSON200(d.client.GetWorkspaceMemberWithResponse(
-		ctx,
-		data.WorkspaceId.ValueString(),
-		data.UserId.ValueString(),
-		d.WithApiKeyRequestEditorFn(),
-	)))(&resp.Diagnostics)
-	if resp.Diagnostics.HasError() {
-		return
-	}
-
-	resp.Diagnostics.Append(data.FromAPI(ctx, *member)...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
-
-	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+	fwdatasource.Read(ctx, func(data *WorkspaceMemberModel) (*anthropic.WorkspaceMember, error) {
+		return d.apiKeyClient.Organization.Workspaces.Members.Get(
+			ctx,
+			data.UserId.ValueString(),
+			anthropic.OrganizationWorkspaceMemberGetParams{
+				WorkspaceID: data.WorkspaceId.ValueString(),
+			},
+		)
+	}, req, resp)
 }
