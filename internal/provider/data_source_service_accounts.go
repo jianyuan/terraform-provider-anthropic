@@ -6,21 +6,20 @@ import (
 	"github.com/anthropics/anthropic-sdk-go"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/jianyuan/terraform-provider-anthropic/internal/apijson"
 	"github.com/jianyuan/terraform-provider-anthropic/internal/fwdatasource"
 	supertypes "github.com/orange-cloudavenue/terraform-plugin-framework-supertypes"
-	"github.com/samber/lo"
 )
 
 type ServiceAccountsDataSourceModel struct {
-	ServiceAccounts supertypes.SetNestedObjectValueOf[ServiceAccountModel] `tfsdk:"service_accounts"`
+	ServiceAccounts supertypes.SetNestedObjectValueOf[ServiceAccountModel] `tfsdk:"service_accounts" apijson:",computed"`
 }
 
-func (m *ServiceAccountsDataSourceModel) FromAPI(ctx context.Context, serviceAccounts []anthropic.ServiceAccount) (diags diag.Diagnostics) {
-	m.ServiceAccounts = supertypes.NewSetNestedObjectValueOfValueSlice(ctx, lo.Map(serviceAccounts, func(sa anthropic.ServiceAccount, _ int) ServiceAccountModel {
-		var mm ServiceAccountModel
-		diags.Append(mm.FromAPI(ctx, sa)...)
-		return mm
-	}))
+func (m *ServiceAccountsDataSourceModel) FromAPI(ctx context.Context, data []anthropic.ServiceAccount) (diags diag.Diagnostics) {
+	err := apijson.DecodeComputed(ctx, data, m)
+	if err != nil {
+		diags.AddError("Failed to decode ServiceAccounts", err.Error())
+	}
 	return
 }
 
