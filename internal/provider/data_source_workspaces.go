@@ -44,7 +44,7 @@ func (d *WorkspacesDataSource) Schema(ctx context.Context, req datasource.Schema
 }
 
 func (d *WorkspacesDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-	fwdatasource.List(ctx, func(_ *WorkspacesDataSourceModel) fwdatasource.AutoPager[anthropic.Workspace] {
-		return d.apiKeyClient.Organization.Workspaces.ListAutoPaging(ctx, anthropic.OrganizationWorkspaceListParams{})
+	fwdatasource.List(ctx, func(_ *WorkspacesDataSourceModel) (fwdatasource.AutoPager[anthropic.Workspace], diag.Diagnostics) {
+		return d.apiKeyClient.Organization.Workspaces.ListAutoPaging(ctx, anthropic.OrganizationWorkspaceListParams{}), nil
 	}, req, resp)
 }

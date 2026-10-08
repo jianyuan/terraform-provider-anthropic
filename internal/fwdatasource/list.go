@@ -4,12 +4,13 @@ import (
 	"context"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/jianyuan/terraform-provider-anthropic/internal/fwdiag"
 )
 
 func List[M ModelFromAPIList[T], T any](
 	ctx context.Context,
-	getAutoPager func(M) AutoPager[T],
+	getAutoPager func(M) (AutoPager[T], diag.Diagnostics),
 	req datasource.ReadRequest,
 	resp *datasource.ReadResponse,
 ) {
@@ -21,7 +22,10 @@ func List[M ModelFromAPIList[T], T any](
 	}
 
 	var items []T
-	iter := getAutoPager(data)
+	iter := fwdiag.Merge(getAutoPager(data))(&resp.Diagnostics)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 	for iter.Next() {
 		items = append(items, iter.Current())
 	}

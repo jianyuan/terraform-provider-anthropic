@@ -44,7 +44,7 @@ func (d *ServiceAccountsDataSource) Schema(ctx context.Context, req datasource.S
 }
 
 func (d *ServiceAccountsDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-	fwdatasource.List(ctx, func(_ *ServiceAccountsDataSourceModel) fwdatasource.AutoPager[anthropic.ServiceAccount] {
-		return d.authTokenClient.Organization.ServiceAccounts.ListAutoPaging(ctx, anthropic.OrganizationServiceAccountListParams{})
+	fwdatasource.List(ctx, func(_ *ServiceAccountsDataSourceModel) (fwdatasource.AutoPager[anthropic.ServiceAccount], diag.Diagnostics) {
+		return d.authTokenClient.Organization.ServiceAccounts.ListAutoPaging(ctx, anthropic.OrganizationServiceAccountListParams{}), nil
 	}, req, resp)
 }

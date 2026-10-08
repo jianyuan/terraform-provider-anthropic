@@ -17,10 +17,10 @@ type WorkspaceMembersDataSourceModel struct {
 	Members supertypes.SetNestedObjectValueOf[WorkspaceMemberModel] `tfsdk:"members"`
 }
 
-func (m *WorkspaceMembersDataSourceModel) FromAPI(FromAPI context.Context, members []anthropic.WorkspaceMember) (diags diag.Diagnostics) {
-	m.Members = supertypes.NewSetNestedObjectValueOfValueSlice(FromAPI, lo.Map(members, func(member anthropic.WorkspaceMember, _ int) WorkspaceMemberModel {
+func (m *WorkspaceMembersDataSourceModel) FromAPI(ctx context.Context, members []anthropic.WorkspaceMember) (diags diag.Diagnostics) {
+	m.Members = supertypes.NewSetNestedObjectValueOfValueSlice(ctx, lo.Map(members, func(member anthropic.WorkspaceMember, _ int) WorkspaceMemberModel {
 		var mm WorkspaceMemberModel
-		diags.Append(mm.FromAPI(FromAPI, member)...)
+		diags.Append(mm.FromAPI(ctx, member)...)
 		return mm
 	}))
 	return
@@ -46,11 +46,11 @@ func (d *WorkspaceMembersDataSource) Schema(ctx context.Context, req datasource.
 }
 
 func (d *WorkspaceMembersDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-	fwdatasource.List(ctx, func(data *WorkspaceMembersDataSourceModel) fwdatasource.AutoPager[anthropic.WorkspaceMember] {
+	fwdatasource.List(ctx, func(data *WorkspaceMembersDataSourceModel) (fwdatasource.AutoPager[anthropic.WorkspaceMember], diag.Diagnostics) {
 		return d.apiKeyClient.Organization.Workspaces.Members.ListAutoPaging(
 			ctx,
 			data.Id.ValueString(),
 			anthropic.OrganizationWorkspaceMemberListParams{},
-		)
+		), nil
 	}, req, resp)
 }
