@@ -167,6 +167,7 @@ func (p *AnthropicProvider) DataSources(ctx context.Context) []func() datasource
 		NewWorkspaceDataSource,
 		NewWorkspaceMemberDataSource,
 		NewWorkspaceMembersDataSource,
+		NewWorkspaceRateLimitsDataSource,
 		NewWorkspacesDataSource,
 	}
 }

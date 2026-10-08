@@ -44,7 +44,7 @@ func (d *OrganizationInvitesDataSource) Schema(ctx context.Context, req datasour
 }
 
 func (d *OrganizationInvitesDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-	fwdatasource.List(ctx, func(_ *OrganizationInvitesDataSourceModel) fwdatasource.AutoPager[anthropic.OrganizationInvite] {
-		return d.apiKeyClient.Organization.Invites.ListAutoPaging(ctx, anthropic.OrganizationInviteListParams{})
+	fwdatasource.List(ctx, func(_ *OrganizationInvitesDataSourceModel) (fwdatasource.AutoPager[anthropic.OrganizationInvite], diag.Diagnostics) {
+		return d.apiKeyClient.Organization.Invites.ListAutoPaging(ctx, anthropic.OrganizationInviteListParams{}), nil
 	}, req, resp)
 }
