@@ -6,33 +6,28 @@ import (
 	"github.com/anthropics/anthropic-sdk-go"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/jianyuan/terraform-provider-anthropic/internal/apijson"
 	"github.com/jianyuan/terraform-provider-anthropic/internal/fwtypes"
 )
 
 type ServiceAccountModel struct {
-	Id                types.String `tfsdk:"id"`
-	Name              types.String `tfsdk:"name"`
-	Description       types.String `tfsdk:"description"`
-	OrganizationRole  types.String `tfsdk:"organization_role"`
-	ArchivedAt        types.String `tfsdk:"archived_at"`
-	ArchivedByActorId types.String `tfsdk:"archived_by_actor_id"`
-	CreatedAt         types.String `tfsdk:"created_at"`
-	CreatedByActorId  types.String `tfsdk:"created_by_actor_id"`
-	UpdatedAt         types.String `tfsdk:"updated_at"`
-	UpdatedByActorId  types.String `tfsdk:"updated_by_actor_id"`
+	Id                types.String `tfsdk:"id" apijson:",computed"`
+	Name              types.String `tfsdk:"name" apijson:",computed"`
+	Description       types.String `tfsdk:"description" apijson:",computed"`
+	OrganizationRole  types.String `tfsdk:"organization_role" apijson:",computed"`
+	ArchivedAt        types.String `tfsdk:"archived_at" apijson:",computed"`
+	ArchivedByActorId types.String `tfsdk:"archived_by_actor_id" apijson:",computed"`
+	CreatedAt         types.String `tfsdk:"created_at" apijson:",computed"`
+	CreatedByActorId  types.String `tfsdk:"created_by_actor_id" apijson:",computed"`
+	UpdatedAt         types.String `tfsdk:"updated_at" apijson:",computed"`
+	UpdatedByActorId  types.String `tfsdk:"updated_by_actor_id" apijson:",computed"`
 }
 
 func (m *ServiceAccountModel) FromAPI(ctx context.Context, data anthropic.ServiceAccount) (diags diag.Diagnostics) {
-	m.Id = fwtypes.StringValue(data.ID, data.JSON.ID)
-	m.Name = fwtypes.StringValue(data.Name, data.JSON.Name)
-	m.Description = fwtypes.StringValue(data.Description, data.JSON.Description)
-	m.OrganizationRole = fwtypes.StringValue(data.OrganizationRole, data.JSON.OrganizationRole)
-	m.ArchivedAt = fwtypes.TimeValue(data.ArchivedAt, data.JSON.ArchivedAt)
-	m.ArchivedByActorId = fwtypes.StringValue(data.ArchivedByActorID, data.JSON.ArchivedByActorID)
-	m.CreatedAt = fwtypes.TimeValue(data.CreatedAt, data.JSON.CreatedAt)
-	m.CreatedByActorId = fwtypes.StringValue(data.CreatedByActorID, data.JSON.CreatedByActorID)
-	m.UpdatedAt = fwtypes.TimeValue(data.UpdatedAt, data.JSON.UpdatedAt)
-	m.UpdatedByActorId = fwtypes.StringValue(data.UpdatedByActorID, data.JSON.UpdatedByActorID)
+	err := apijson.DecodeComputed(ctx, data, m)
+	if err != nil {
+		diags.AddError("Failed to decode ServiceAccount", err.Error())
+	}
 	return
 }
 

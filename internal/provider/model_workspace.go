@@ -7,6 +7,7 @@ import (
 	"github.com/anthropics/anthropic-sdk-go/shared/constant"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/jianyuan/terraform-provider-anthropic/internal/apijson"
 	"github.com/jianyuan/terraform-provider-anthropic/internal/fwdiag"
 	"github.com/jianyuan/terraform-provider-anthropic/internal/fwtypes"
 	supertypes "github.com/orange-cloudavenue/terraform-plugin-framework-supertypes"
@@ -14,31 +15,22 @@ import (
 )
 
 type WorkspaceModel struct {
-	Id            types.String                                                      `tfsdk:"id"`
-	Name          types.String                                                      `tfsdk:"name"`
-	CreatedAt     types.String                                                      `tfsdk:"created_at"`
-	ArchivedAt    types.String                                                      `tfsdk:"archived_at"`
-	DisplayColor  types.String                                                      `tfsdk:"display_color"`
-	CompartmentId types.String                                                      `tfsdk:"compartment_id"`
-	DataResidency supertypes.SingleNestedObjectValueOf[WorkspaceModelDataResidency] `tfsdk:"data_residency"`
-	ExternalKeyId types.String                                                      `tfsdk:"external_key_id"`
-	Tags          supertypes.MapValueOf[string]                                     `tfsdk:"tags"`
+	Id            types.String                                                      `tfsdk:"id" apijson:",computed"`
+	Name          types.String                                                      `tfsdk:"name" apijson:",computed"`
+	CreatedAt     types.String                                                      `tfsdk:"created_at" apijson:",computed"`
+	ArchivedAt    types.String                                                      `tfsdk:"archived_at" apijson:",computed"`
+	DisplayColor  types.String                                                      `tfsdk:"display_color" apijson:",computed"`
+	CompartmentId types.String                                                      `tfsdk:"compartment_id" apijson:",computed"`
+	DataResidency supertypes.SingleNestedObjectValueOf[WorkspaceModelDataResidency] `tfsdk:"data_residency" apijson:",computed"`
+	ExternalKeyId types.String                                                      `tfsdk:"external_key_id" apijson:",computed"`
+	Tags          supertypes.MapValueOf[string]                                     `tfsdk:"tags" apijson:",computed"`
 }
 
 func (m *WorkspaceModel) FromAPI(ctx context.Context, data anthropic.Workspace) (diags diag.Diagnostics) {
-	m.Id = fwtypes.StringValue(data.ID, data.JSON.ID)
-	m.Name = fwtypes.StringValue(data.Name, data.JSON.Name)
-	m.CreatedAt = fwtypes.TimeValue(data.CreatedAt, data.JSON.CreatedAt)
-	m.ArchivedAt = fwtypes.TimeValue(data.ArchivedAt, data.JSON.ArchivedAt)
-	m.DisplayColor = fwtypes.StringValue(data.DisplayColor, data.JSON.DisplayColor)
-	m.CompartmentId = fwtypes.StringValue(data.CompartmentID, data.JSON.CompartmentID)
-	m.DataResidency = (func() supertypes.SingleNestedObjectValueOf[WorkspaceModelDataResidency] {
-		var mm WorkspaceModelDataResidency
-		diags.Append(mm.FromAPI(ctx, data.DataResidency)...)
-		return supertypes.NewSingleNestedObjectValueOf(ctx, &mm)
-	})()
-	m.ExternalKeyId = fwtypes.StringValue(data.ExternalKeyID, data.JSON.ExternalKeyID)
-	m.Tags = fwdiag.Merge(supertypes.NewMapValueOfMap(ctx, data.Tags))(&diags)
+	err := apijson.DecodeComputed(ctx, data, m)
+	if err != nil {
+		diags.AddError("Failed to decode Workspace", err.Error())
+	}
 	return
 }
 
@@ -111,9 +103,9 @@ func (m *WorkspaceModel) ToAPIForUpdate(ctx context.Context) (*anthropic.Organiz
 }
 
 type WorkspaceModelDataResidency struct {
-	AllowedInferenceGeos supertypes.SingleNestedObjectValueOf[WorkspaceModelDataResidencyAllowedInferenceGeos] `tfsdk:"allowed_inference_geos"`
-	DefaultInferenceGeo  types.String                                                                          `tfsdk:"default_inference_geo"`
-	WorkspaceGeo         types.String                                                                          `tfsdk:"workspace_geo"`
+	AllowedInferenceGeos supertypes.SingleNestedObjectValueOf[WorkspaceModelDataResidencyAllowedInferenceGeos] `tfsdk:"allowed_inference_geos" apijson:"AllowedInferenceGeos,computed"`
+	DefaultInferenceGeo  types.String                                                                          `tfsdk:"default_inference_geo" apijson:",computed"`
+	WorkspaceGeo         types.String                                                                          `tfsdk:"workspace_geo" apijson:",computed"`
 }
 
 func (m *WorkspaceModelDataResidency) FromAPI(ctx context.Context, data anthropic.DataResidency) (diags diag.Diagnostics) {
@@ -191,8 +183,8 @@ func (m *WorkspaceModelDataResidency) ToAPIForUpdate(ctx context.Context) (*anth
 }
 
 type WorkspaceModelDataResidencyAllowedInferenceGeos struct {
-	Values       supertypes.SetValueOf[string] `tfsdk:"values"`
-	Unrestricted types.Bool                    `tfsdk:"unrestricted"`
+	Values       supertypes.SetValueOf[string] `tfsdk:"values" apijson:",computed"`
+	Unrestricted types.Bool                    `tfsdk:"unrestricted" apijson:",computed"`
 }
 
 func (m *WorkspaceModelDataResidencyAllowedInferenceGeos) FromAPI(ctx context.Context, data anthropic.DataResidencyAllowedInferenceGeosUnion) (diags diag.Diagnostics) {

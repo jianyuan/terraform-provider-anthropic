@@ -7,6 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/jianyuan/terraform-provider-anthropic/internal/apijson"
 	"github.com/jianyuan/terraform-provider-anthropic/internal/fwdatasource"
 	"github.com/jianyuan/terraform-provider-anthropic/internal/fwdiag"
 	"github.com/jianyuan/terraform-provider-anthropic/internal/fwtypes"
@@ -15,17 +16,16 @@ import (
 )
 
 type WorkspaceRateLimitsDataSourceModel struct {
-	WorkspaceID         types.String                                                                              `tfsdk:"workspace_id"`
+	WorkspaceID         types.String                                                                              `tfsdk:"workspace_id" apijson:",computed"`
 	Query               supertypes.SingleNestedObjectValueOf[WorkspaceRateLimitsDataSourceModel_Query]            `tfsdk:"query"`
-	WorkspaceRateLimits supertypes.ListNestedObjectValueOf[WorkspaceRateLimitsDataSourceModel_WorkspaceRateLimit] `tfsdk:"workspace_rate_limits"`
+	WorkspaceRateLimits supertypes.ListNestedObjectValueOf[WorkspaceRateLimitsDataSourceModel_WorkspaceRateLimit] `tfsdk:"workspace_rate_limits" apijson:",computed"`
 }
 
 func (m *WorkspaceRateLimitsDataSourceModel) FromAPI(ctx context.Context, data []anthropic.WorkspaceRateLimit) (diags diag.Diagnostics) {
-	m.WorkspaceRateLimits = supertypes.NewListNestedObjectValueOfValueSlice(ctx, lo.Map(data, func(item anthropic.WorkspaceRateLimit, _ int) WorkspaceRateLimitsDataSourceModel_WorkspaceRateLimit {
-		var mm WorkspaceRateLimitsDataSourceModel_WorkspaceRateLimit
-		diags.Append(mm.FromAPI(ctx, item)...)
-		return mm
-	}))
+	err := apijson.DecodeComputed(ctx, data, m, apijson.WithUnknownAsNull())
+	if err != nil {
+		diags.AddError("Failed to decode WorkspaceRateLimits", err.Error())
+	}
 	return
 }
 
@@ -52,16 +52,16 @@ func (m *WorkspaceRateLimitsDataSourceModel) ToListParams(ctx context.Context) (
 }
 
 type WorkspaceRateLimitsDataSourceModel_Query struct {
-	GroupType        types.String `tfsdk:"group_type"`
-	IncludeInherited types.Bool   `tfsdk:"include_inherited"`
+	GroupType        types.String `tfsdk:"group_type" apijson:",computed"`
+	IncludeInherited types.Bool   `tfsdk:"include_inherited" apijson:",computed"`
 }
 
 type WorkspaceRateLimitsDataSourceModel_WorkspaceRateLimit struct {
-	Group       supertypes.SingleNestedObjectValueOf[WorkspaceRateLimitsDataSourceModel_WorkspaceRateLimit_Group] `tfsdk:"group"`
-	Limits      supertypes.ListNestedObjectValueOf[WorkspaceRateLimitsDataSourceModel_WorkspaceRateLimit_Limit]   `tfsdk:"limits"`
-	Models      supertypes.ListValueOf[string]                                                                    `tfsdk:"models"`
-	RateLimitID types.String                                                                                      `tfsdk:"rate_limit_id"`
-	WorkspaceID types.String                                                                                      `tfsdk:"workspace_id"`
+	Group       supertypes.SingleNestedObjectValueOf[WorkspaceRateLimitsDataSourceModel_WorkspaceRateLimit_Group] `tfsdk:"group" apijson:",computed"`
+	Limits      supertypes.ListNestedObjectValueOf[WorkspaceRateLimitsDataSourceModel_WorkspaceRateLimit_Limit]   `tfsdk:"limits" apijson:",computed"`
+	Models      supertypes.ListValueOf[string]                                                                    `tfsdk:"models" apijson:",computed"`
+	RateLimitID types.String                                                                                      `tfsdk:"rate_limit_id" apijson:",computed"`
+	WorkspaceID types.String                                                                                      `tfsdk:"workspace_id" apijson:",computed"`
 }
 
 func (m *WorkspaceRateLimitsDataSourceModel_WorkspaceRateLimit) FromAPI(ctx context.Context, data anthropic.WorkspaceRateLimit) (diags diag.Diagnostics) {
@@ -82,9 +82,9 @@ func (m *WorkspaceRateLimitsDataSourceModel_WorkspaceRateLimit) FromAPI(ctx cont
 }
 
 type WorkspaceRateLimitsDataSourceModel_WorkspaceRateLimit_Group struct {
-	Type        types.String `tfsdk:"type"`
-	ID          types.String `tfsdk:"id"`
-	DisplayName types.String `tfsdk:"display_name"`
+	Type        types.String `tfsdk:"type" apijson ",computed"`
+	ID          types.String `tfsdk:"id" apijson ",computed"`
+	DisplayName types.String `tfsdk:"display_name" apijson ",computed"`
 }
 
 func (m *WorkspaceRateLimitsDataSourceModel_WorkspaceRateLimit_Group) FromAPI(ctx context.Context, data anthropic.WorkspaceRateLimitGroupUnion) (diags diag.Diagnostics) {
@@ -95,10 +95,10 @@ func (m *WorkspaceRateLimitsDataSourceModel_WorkspaceRateLimit_Group) FromAPI(ct
 }
 
 type WorkspaceRateLimitsDataSourceModel_WorkspaceRateLimit_Limit struct {
-	Type     types.String                                                                                             `tfsdk:"type"`
-	OrgLimit types.Int64                                                                                              `tfsdk:"org_limit"`
-	Source   supertypes.SingleNestedObjectValueOf[WorkspaceRateLimitsDataSourceModel_WorkspaceRateLimit_Limit_Source] `tfsdk:"source"`
-	Value    types.Int64                                                                                              `tfsdk:"value"`
+	Type     types.String                                                                                             `tfsdk:"type" apijson:",computed"`
+	OrgLimit types.Int64                                                                                              `tfsdk:"org_limit" apijson:",computed"`
+	Source   supertypes.SingleNestedObjectValueOf[WorkspaceRateLimitsDataSourceModel_WorkspaceRateLimit_Limit_Source] `tfsdk:"source" apijson:",computed"`
+	Value    types.Int64                                                                                              `tfsdk:"value" apijson:",computed"`
 }
 
 func (m *WorkspaceRateLimitsDataSourceModel_WorkspaceRateLimit_Limit) FromAPI(ctx context.Context, data anthropic.WorkspaceRateLimitValue) (diags diag.Diagnostics) {
@@ -114,7 +114,7 @@ func (m *WorkspaceRateLimitsDataSourceModel_WorkspaceRateLimit_Limit) FromAPI(ct
 }
 
 type WorkspaceRateLimitsDataSourceModel_WorkspaceRateLimit_Limit_Source struct {
-	Type types.String `tfsdk:"type"`
+	Type types.String `tfsdk:"type" apijson:",computed"`
 }
 
 func (m *WorkspaceRateLimitsDataSourceModel_WorkspaceRateLimit_Limit_Source) FromAPI(ctx context.Context, data anthropic.WorkspaceRateLimitValueSourceUnion) (diags diag.Diagnostics) {

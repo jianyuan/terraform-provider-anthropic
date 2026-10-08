@@ -7,21 +7,20 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/jianyuan/terraform-provider-anthropic/internal/apijson"
 	"github.com/jianyuan/terraform-provider-anthropic/internal/fwdatasource"
 	supertypes "github.com/orange-cloudavenue/terraform-plugin-framework-supertypes"
-	"github.com/samber/lo"
 )
 
 type UsersDataSourceModel struct {
-	Users supertypes.SetNestedObjectValueOf[UserDataSourceModel] `tfsdk:"users"`
+	Users supertypes.SetNestedObjectValueOf[UserDataSourceModel] `tfsdk:"users" apijson:",computed"`
 }
 
-func (m *UsersDataSourceModel) FromAPI(ctx context.Context, users []anthropic.OrganizationUser) (diags diag.Diagnostics) {
-	m.Users = supertypes.NewSetNestedObjectValueOfValueSlice(ctx, lo.Map(users, func(user anthropic.OrganizationUser, _ int) UserDataSourceModel {
-		var mm UserDataSourceModel
-		diags.Append(mm.FromAPI(ctx, user)...)
-		return mm
-	}))
+func (m *UsersDataSourceModel) FromAPI(ctx context.Context, data []anthropic.OrganizationUser) (diags diag.Diagnostics) {
+	err := apijson.DecodeComputed(ctx, data, m)
+	if err != nil {
+		diags.AddError("Failed to decode Users", err.Error())
+	}
 	return
 }
 

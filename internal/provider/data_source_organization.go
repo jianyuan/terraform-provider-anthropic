@@ -8,18 +8,20 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/jianyuan/terraform-provider-anthropic/internal/apijson"
 	"github.com/jianyuan/terraform-provider-anthropic/internal/fwdatasource"
-	"github.com/jianyuan/terraform-provider-anthropic/internal/fwtypes"
 )
 
 type OrganizationDataSourceModel struct {
-	ID   types.String `tfsdk:"id"`
-	Name types.String `tfsdk:"name"`
+	ID   types.String `tfsdk:"id" apijson:",computed"`
+	Name types.String `tfsdk:"name" apijson:",computed"`
 }
 
-func (m *OrganizationDataSourceModel) FromAPI(ctx context.Context, org anthropic.OrganizationInfo) (diags diag.Diagnostics) {
-	m.ID = fwtypes.StringValue(org.ID, org.JSON.ID)
-	m.Name = fwtypes.StringValue(org.Name, org.JSON.Name)
+func (m *OrganizationDataSourceModel) FromAPI(ctx context.Context, data anthropic.OrganizationInfo) (diags diag.Diagnostics) {
+	err := apijson.DecodeComputed(ctx, data, m)
+	if err != nil {
+		diags.AddError("Failed to decode Organization", err.Error())
+	}
 	return
 }
 

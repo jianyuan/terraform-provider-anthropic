@@ -6,21 +6,20 @@ import (
 	"github.com/anthropics/anthropic-sdk-go"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/jianyuan/terraform-provider-anthropic/internal/apijson"
 	"github.com/jianyuan/terraform-provider-anthropic/internal/fwdatasource"
 	supertypes "github.com/orange-cloudavenue/terraform-plugin-framework-supertypes"
-	"github.com/samber/lo"
 )
 
 type OrganizationInvitesDataSourceModel struct {
-	Invites supertypes.SetNestedObjectValueOf[OrganizationInviteModel] `tfsdk:"invites"`
+	Invites supertypes.SetNestedObjectValueOf[OrganizationInviteModel] `tfsdk:"invites" apijson:",computed"`
 }
 
 func (m *OrganizationInvitesDataSourceModel) FromAPI(ctx context.Context, invites []anthropic.OrganizationInvite) (diags diag.Diagnostics) {
-	m.Invites = supertypes.NewSetNestedObjectValueOfValueSlice(ctx, lo.Map(invites, func(invite anthropic.OrganizationInvite, _ int) OrganizationInviteModel {
-		var mm OrganizationInviteModel
-		diags.Append(mm.FromAPI(ctx, invite)...)
-		return mm
-	}))
+	err := apijson.DecodeComputed(ctx, invites, m)
+	if err != nil {
+		diags.AddError("Failed to decode OrganizationInvites", err.Error())
+	}
 	return
 }
 

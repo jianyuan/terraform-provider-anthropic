@@ -6,23 +6,22 @@ import (
 	"github.com/anthropics/anthropic-sdk-go"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/jianyuan/terraform-provider-anthropic/internal/fwtypes"
+	"github.com/jianyuan/terraform-provider-anthropic/internal/apijson"
 )
 
 type ServiceAccountWorkspaceMemberModel struct {
-	WorkspaceId      types.String `tfsdk:"workspace_id"`
-	ServiceAccountId types.String `tfsdk:"service_account_id"`
-	WorkspaceRole    types.String `tfsdk:"workspace_role"`
-	CreatedByActorId types.String `tfsdk:"created_by_actor_id"`
-	Implicit         types.Bool   `tfsdk:"implicit"`
+	WorkspaceId      types.String `tfsdk:"workspace_id" apijson:",computed"`
+	ServiceAccountId types.String `tfsdk:"service_account_id" apijson:",computed"`
+	WorkspaceRole    types.String `tfsdk:"workspace_role" apijson:",computed"`
+	CreatedByActorId types.String `tfsdk:"created_by_actor_id" apijson:",computed"`
+	Implicit         types.Bool   `tfsdk:"implicit" apijson:",computed"`
 }
 
 func (m *ServiceAccountWorkspaceMemberModel) FromAPI(ctx context.Context, data anthropic.ServiceAccountWorkspaceMember) (diags diag.Diagnostics) {
-	m.WorkspaceId = fwtypes.StringValue(data.WorkspaceID, data.JSON.WorkspaceID)
-	m.ServiceAccountId = fwtypes.StringValue(data.ServiceAccountID, data.JSON.ServiceAccountID)
-	m.WorkspaceRole = fwtypes.StringValue(data.WorkspaceRole, data.JSON.WorkspaceRole)
-	m.CreatedByActorId = fwtypes.StringValue(data.CreatedByActorID, data.JSON.CreatedByActorID)
-	m.Implicit = fwtypes.BoolValue(data.Implicit, data.JSON.Implicit)
+	err := apijson.DecodeComputed(ctx, data, m)
+	if err != nil {
+		diags.AddError("Failed to decode ServiceAccountWorkspaceMember", err.Error())
+	}
 	return
 }
 

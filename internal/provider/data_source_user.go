@@ -8,24 +8,23 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/jianyuan/terraform-provider-anthropic/internal/apijson"
 	"github.com/jianyuan/terraform-provider-anthropic/internal/fwdatasource"
-	"github.com/jianyuan/terraform-provider-anthropic/internal/fwtypes"
 )
 
 type UserDataSourceModel struct {
-	Id      types.String `tfsdk:"id"`
-	Email   types.String `tfsdk:"email"`
-	Name    types.String `tfsdk:"name"`
-	Role    types.String `tfsdk:"role"`
-	AddedAt types.String `tfsdk:"added_at"`
+	Id      types.String `tfsdk:"id" apijson:""`
+	Email   types.String `tfsdk:"email" apijson:",computed"`
+	Name    types.String `tfsdk:"name" apijson:",computed"`
+	Role    types.String `tfsdk:"role" apijson:",computed"`
+	AddedAt types.String `tfsdk:"added_at" apijson:",computed"`
 }
 
 func (m *UserDataSourceModel) FromAPI(ctx context.Context, data anthropic.OrganizationUser) (diags diag.Diagnostics) {
-	m.Id = fwtypes.StringValue(data.ID, data.JSON.ID)
-	m.Email = fwtypes.StringValue(data.Email, data.JSON.Email)
-	m.Name = fwtypes.StringValue(data.Name, data.JSON.Name)
-	m.Role = fwtypes.StringValue(data.Role, data.JSON.Role)
-	m.AddedAt = fwtypes.TimeValue(data.AddedAt, data.JSON.AddedAt)
+	err := apijson.DecodeComputed(ctx, data, m)
+	if err != nil {
+		diags.AddError("Failed to decode User", err.Error())
+	}
 	return
 }
 

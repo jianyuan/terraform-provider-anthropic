@@ -7,22 +7,21 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/jianyuan/terraform-provider-anthropic/internal/apijson"
 	"github.com/jianyuan/terraform-provider-anthropic/internal/fwdatasource"
 	supertypes "github.com/orange-cloudavenue/terraform-plugin-framework-supertypes"
-	"github.com/samber/lo"
 )
 
 type WorkspaceMembersDataSourceModel struct {
 	Id      types.String                                            `tfsdk:"id"`
-	Members supertypes.SetNestedObjectValueOf[WorkspaceMemberModel] `tfsdk:"members"`
+	Members supertypes.SetNestedObjectValueOf[WorkspaceMemberModel] `tfsdk:"members" apijson:",computed"`
 }
 
 func (m *WorkspaceMembersDataSourceModel) FromAPI(ctx context.Context, members []anthropic.WorkspaceMember) (diags diag.Diagnostics) {
-	m.Members = supertypes.NewSetNestedObjectValueOfValueSlice(ctx, lo.Map(members, func(member anthropic.WorkspaceMember, _ int) WorkspaceMemberModel {
-		var mm WorkspaceMemberModel
-		diags.Append(mm.FromAPI(ctx, member)...)
-		return mm
-	}))
+	err := apijson.DecodeComputed(ctx, members, m)
+	if err != nil {
+		diags.AddError("Failed to decode WorkspaceMembers", err.Error())
+	}
 	return
 }
 
