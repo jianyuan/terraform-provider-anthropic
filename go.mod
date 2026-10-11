@@ -3,7 +3,7 @@ module github.com/jianyuan/terraform-provider-anthropic
 go 1.27
 
 require (
-	github.com/anthropics/anthropic-sdk-go v1.79.1
+	github.com/anthropics/anthropic-sdk-go v1.80.0
 	github.com/avast/retry-go/v5 v5.0.0
 	github.com/hashicorp/go-retryablehttp v0.7.8
 	github.com/hashicorp/terraform-plugin-framework v1.19.0
@@ -12,7 +12,6 @@ require (
 	github.com/hashicorp/terraform-plugin-sdk/v2 v2.40.1
 	github.com/hashicorp/terraform-plugin-testing v1.16.0
 	github.com/jianyuan/terraform-plugin-framework-utils v0.0.0-20260907131432-0bb672801f81
-	github.com/oapi-codegen/nullable v1.2.0
 	github.com/orange-cloudavenue/terraform-plugin-framework-superschema v1.12.0
 	github.com/orange-cloudavenue/terraform-plugin-framework-supertypes v1.2.0
 	github.com/samber/lo v1.53.0
