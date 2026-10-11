@@ -196,13 +196,7 @@ type WorkspaceModelDataResidencyAllowedInferenceGeos struct {
 }
 
 func (m *WorkspaceModelDataResidencyAllowedInferenceGeos) FromAPI(ctx context.Context, data anthropic.DataResidencyAllowedInferenceGeosUnion) (diags diag.Diagnostics) {
-	if data.JSON.OfGeos.Valid() {
-		m.Values = supertypes.NewSetValueOfSlice(ctx, lo.Map(data.OfGeos, func(v anthropic.AllowedInferenceGeo, _ int) string {
-			return string(v)
-		}))
-	} else {
-		m.Values = supertypes.NewSetValueOfNull[string](ctx)
-	}
+	m.Values = fwtypes.SetStringValue(ctx, data.OfGeos, data.JSON.OfGeos, fwtypes.WithUnknownAsNull())
 	m.Unrestricted = types.BoolValue(data.JSON.OfUnrestricted.Valid())
 	return
 }

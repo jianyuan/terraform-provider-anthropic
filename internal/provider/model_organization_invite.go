@@ -25,11 +25,7 @@ func (m *OrganizationInviteModel) FromAPI(ctx context.Context, data anthropic.Or
 	m.Id = fwtypes.StringValue(data.ID, data.JSON.ID)
 	m.Email = fwtypes.StringValue(data.Email, data.JSON.Email)
 	m.Role = fwtypes.StringValue(data.Role, data.JSON.Role)
-	if len(data.RBACGroupIDs) == 0 {
-		m.RbacGroupIds = supertypes.NewSetValueOfNull[string](ctx)
-	} else {
-		m.RbacGroupIds = supertypes.NewSetValueOfSlice(ctx, data.RBACGroupIDs)
-	}
+	m.RbacGroupIds = fwtypes.SetStringValue(ctx, data.RBACGroupIDs, data.JSON.RBACGroupIDs)
 	m.Status = fwtypes.StringValue(data.Status, data.JSON.Status)
 	m.AcceptedAt = fwtypes.TimeValue(data.AcceptedAt, data.JSON.AcceptedAt)
 	m.InvitedAt = fwtypes.TimeValue(data.InvitedAt, data.JSON.InvitedAt)

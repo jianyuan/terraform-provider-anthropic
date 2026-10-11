@@ -7,6 +7,7 @@ import (
 	"github.com/anthropics/anthropic-sdk-go/packages/respjson"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	supertypes "github.com/orange-cloudavenue/terraform-plugin-framework-supertypes"
+	"github.com/samber/lo"
 )
 
 type option struct {
@@ -70,7 +71,7 @@ func TimeValue(value time.Time, meta respjson.Field, opts ...Option) types.Strin
 	return StringValue(value.Format(time.RFC3339Nano), meta, opts...)
 }
 
-func ListStringValue(ctx context.Context, value []string, meta respjson.Field, opts ...Option) supertypes.ListValueOf[string] {
+func ListStringValue[T ~string](ctx context.Context, values []T, meta respjson.Field, opts ...Option) supertypes.ListValueOf[string] {
 	opt := &option{}
 	for _, optFunc := range opts {
 		optFunc(opt)
@@ -82,5 +83,20 @@ func ListStringValue(ctx context.Context, value []string, meta respjson.Field, o
 		}
 		return supertypes.NewListValueOfUnknown[string](ctx)
 	}
-	return supertypes.NewListValueOfSlice(ctx, value)
+	return supertypes.NewListValueOfSlice(ctx, lo.Map(values, func(value T, _ int) string { return string(value) }))
+}
+
+func SetStringValue[T ~string](ctx context.Context, values []T, meta respjson.Field, opts ...Option) supertypes.SetValueOf[string] {
+	opt := &option{}
+	for _, optFunc := range opts {
+		optFunc(opt)
+	}
+
+	if !meta.Valid() {
+		if meta.Raw() == respjson.Null || opt.unknownAsNull {
+			return supertypes.NewSetValueOfNull[string](ctx)
+		}
+		return supertypes.NewSetValueOfUnknown[string](ctx)
+	}
+	return supertypes.NewSetValueOfSlice(ctx, lo.Map(values, func(value T, _ int) string { return string(value) }))
 }
