@@ -14,7 +14,7 @@ List all members of the workspace.
 
 ```terraform
 data "anthropic_workspace_members" "example" {
-  id = "wrkspc_xxxxx"
+  workspace_id = "wrkspc_xxxxx"
 }
 ```
 
@@ -23,7 +23,7 @@ data "anthropic_workspace_members" "example" {
 
 ### Required
 
-- `id` (String) ID of the Workspace.
+- `workspace_id` (String) ID of the Workspace.
 
 ### Read-Only
 

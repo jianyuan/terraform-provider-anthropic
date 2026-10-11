@@ -21,7 +21,7 @@ func workspaceMembersSchema() superschema.Schema {
 			MarkdownDescription: "List all members of the workspace.",
 		},
 		Attributes: superschema.Attributes{
-			"id": superschema.StringAttribute{
+			"workspace_id": superschema.StringAttribute{
 				DataSource: &schemaD.StringAttribute{
 					MarkdownDescription: "ID of the Workspace.",
 					Required:            true,

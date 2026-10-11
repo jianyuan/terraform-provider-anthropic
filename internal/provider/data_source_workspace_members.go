@@ -13,8 +13,8 @@ import (
 )
 
 type WorkspaceMembersDataSourceModel struct {
-	Id      types.String                                            `tfsdk:"id"`
-	Members supertypes.SetNestedObjectValueOf[WorkspaceMemberModel] `tfsdk:"members"`
+	WorkspaceId types.String                                            `tfsdk:"workspace_id"`
+	Members     supertypes.SetNestedObjectValueOf[WorkspaceMemberModel] `tfsdk:"members"`
 }
 
 func (m *WorkspaceMembersDataSourceModel) FromAPI(ctx context.Context, members []anthropic.WorkspaceMember) (diags diag.Diagnostics) {
@@ -49,7 +49,7 @@ func (d *WorkspaceMembersDataSource) Read(ctx context.Context, req datasource.Re
 	fwdatasource.List(ctx, func(data *WorkspaceMembersDataSourceModel) (fwdatasource.AutoPager[anthropic.WorkspaceMember], diag.Diagnostics) {
 		return d.apiKeyClient.Organization.Workspaces.Members.ListAutoPaging(
 			ctx,
-			data.Id.ValueString(),
+			data.WorkspaceId.ValueString(),
 			anthropic.OrganizationWorkspaceMemberListParams{},
 		), nil
 	}, req, resp)

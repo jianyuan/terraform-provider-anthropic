@@ -24,7 +24,7 @@ func TestAccWorkspaceMembersDataSource(t *testing.T) {
 			{
 				Config: testAccWorkspaceMembersDataSourceConfig(workspaceName),
 				ConfigStateChecks: []statecheck.StateCheck{
-					statecheck.CompareValuePairs(rn, tfjsonpath.New("id"), "anthropic_workspace.test", tfjsonpath.New("id"), compare.ValuesSame()),
+					statecheck.CompareValuePairs(rn, tfjsonpath.New("workspace_id"), "anthropic_workspace.test", tfjsonpath.New("id"), compare.ValuesSame()),
 					statecheck.ExpectKnownValue(rn, tfjsonpath.New("members"), knownvalue.SetPartial([]knownvalue.Check{
 						knownvalue.ObjectPartial(map[string]knownvalue.Check{
 							"user_id": knownvalue.StringExact(acctest.TestUserId),
@@ -53,9 +53,7 @@ resource "anthropic_workspace_member" "test" {
 }
 
 data "anthropic_workspace_members" "test" {
-	depends_on  = [anthropic_workspace_member.test]
-
-	id = anthropic_workspace_member.test.workspace_id
+	workspace_id = anthropic_workspace_member.test.workspace_id
 }
 `, workspaceName, acctest.TestUserId)
 }
