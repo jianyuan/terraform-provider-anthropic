@@ -4,7 +4,6 @@ go 1.27
 
 require (
 	github.com/anthropics/anthropic-sdk-go v1.84.0
-	github.com/anthropics/anthropic-sdk-go/v2 v2.3.0
 	github.com/avast/retry-go/v5 v5.0.0
 	github.com/hashicorp/go-retryablehttp v0.7.8
 	github.com/hashicorp/terraform-plugin-framework v1.19.0
