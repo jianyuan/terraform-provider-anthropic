@@ -84,6 +84,7 @@ require (
 	github.com/pb33f/go-yaml v0.1.1 // indirect
 	github.com/pb33f/ordered-map/v2 v2.3.2 // indirect
 	github.com/posener/complete v1.2.3 // indirect
+	github.com/rivo/uniseg v0.2.0 // indirect
 	github.com/santhosh-tekuri/jsonschema/v6 v6.0.3 // indirect
 	github.com/shopspring/decimal v1.3.1 // indirect
 	github.com/speakeasy-api/jsonpath v0.6.3 // indirect
