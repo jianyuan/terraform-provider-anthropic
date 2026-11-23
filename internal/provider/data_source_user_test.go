@@ -15,7 +15,7 @@ func TestAccUserDataSource(t *testing.T) {
 	rn := "data.anthropic_user.test"
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { acctest.PreCheck(t) },
+		PreCheck:                 func() { acctest.PreCheck(t, acctest.EnvApiKey, acctest.EnvUserId) },
 		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{

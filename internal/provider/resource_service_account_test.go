@@ -17,7 +17,7 @@ func TestAccServiceAccountResource(t *testing.T) {
 	name := sdkacctest.RandomWithPrefix("tf-sa")
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { acctest.PreCheck(t) },
+		PreCheck:                 func() { acctest.PreCheck(t, acctest.EnvAuthToken) },
 		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{

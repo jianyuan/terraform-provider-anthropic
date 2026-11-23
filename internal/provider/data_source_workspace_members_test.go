@@ -18,7 +18,7 @@ func TestAccWorkspaceMembersDataSource(t *testing.T) {
 	workspaceName := sdkacctest.RandomWithPrefix("tf-workspace")
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { acctest.PreCheck(t) },
+		PreCheck:                 func() { acctest.PreCheck(t, acctest.EnvApiKey, acctest.EnvUserId) },
 		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
