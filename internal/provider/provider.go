@@ -57,7 +57,7 @@ func (p *AnthropicProvider) Schema(ctx context.Context, req provider.SchemaReque
 				Sensitive:           true,
 			},
 			"auth_token": schema.StringAttribute{
-				MarkdownDescription: "The OAuth bearer token for authentication. Log in with the `ant` CLI under a dedicated profile with the `org:admin` scope (see [Admin access](https://platform.claude.com/docs/en/cli-sdks-libraries/cli/authentication#admin-access)), then export the bearer token. It can be sourced from the `ANTHROPIC_AUTH_TOKEN` environment variable. Required only by the service account resources and data sources (`anthropic_service_account`, `anthropic_service_accounts`, `anthropic_service_account_workspace_member`), which do not accept an Admin API key. Set both `api_key` and `auth_token` to manage everything from one provider block.",
+				MarkdownDescription: "The OAuth bearer token for authentication. See [OAuth bearer token](#oauth-bearer-token) for how to get one with the `ant` CLI. It can be sourced from the `ANTHROPIC_AUTH_TOKEN` environment variable. Required only by the service account resources and data sources (`anthropic_service_account`, `anthropic_service_accounts`, `anthropic_service_account_workspace_member`), which do not accept an Admin API key. Set both `api_key` and `auth_token` to manage everything from one provider block.",
 				Optional:            true,
 				Sensitive:           true,
 			},

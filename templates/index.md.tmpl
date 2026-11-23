@@ -1,0 +1,36 @@
+---
+page_title: "{{.ProviderShortName}} Provider"
+description: |-
+{{ .Description | plainmarkdown | trimspace | prefixlines "  " }}
+---
+
+# {{.ProviderShortName}} Provider
+
+{{ .Description | trimspace }}
+
+{{ if .HasExample -}}
+## Example Usage
+
+{{tffile .ExampleFile }}
+{{- end }}
+
+## Authentication
+
+The provider accepts two credentials. Most resources and data sources need an Admin API key. The service account ones (`anthropic_service_account`, `anthropic_service_accounts` and `anthropic_service_account_workspace_member`) only accept an OAuth bearer token. Set both to manage everything from one provider block.
+
+### Admin API key
+
+Create an Admin API key in the [Anthropic console](https://console.anthropic.com/settings/admin-keys), then set `api_key` or the `ANTHROPIC_API_KEY` environment variable.
+
+### OAuth bearer token
+
+Before running Terraform, log in with the `ant` CLI under a dedicated profile with the `org:admin` scope (see [Admin access](https://platform.claude.com/docs/en/cli-sdks-libraries/cli/authentication#admin-access)), then export its access token:
+
+```shell
+ant auth login --profile admin --scope "org:admin"
+export ANTHROPIC_AUTH_TOKEN=$(ant auth print-credentials --profile admin --access-token)
+```
+
+You can also pass the token to `auth_token` in the provider block.
+
+{{ .SchemaMarkdown | trimspace }}
