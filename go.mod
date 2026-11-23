@@ -11,7 +11,7 @@ require (
 	github.com/hashicorp/terraform-plugin-go v0.31.0
 	github.com/hashicorp/terraform-plugin-sdk/v2 v2.41.1
 	github.com/hashicorp/terraform-plugin-testing v1.16.0
-	github.com/jianyuan/terraform-plugin-framework-utils v1.0.0
+	github.com/jianyuan/terraform-plugin-framework-utils v1.2.0
 	github.com/orange-cloudavenue/terraform-plugin-framework-superschema v1.12.0
 	github.com/orange-cloudavenue/terraform-plugin-framework-supertypes v1.2.0
 	github.com/samber/lo v1.53.0
