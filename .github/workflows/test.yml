@@ -17,6 +17,12 @@ on:
 permissions:
   contents: read
 
+# The acceptance tests share one Anthropic organization, so queue whole runs. A job-level
+# group would make the matrix versions cancel each other.
+concurrency:
+  group: anthropic-acceptance
+  cancel-in-progress: false
+
 jobs:
   # Ensure project builds before running testing matrix
   build:
@@ -44,15 +50,14 @@ jobs:
         with:
           go-version-file: "go.mod"
           cache: true
-      # We need the latest version of Terraform for our documentation generation to use
       - uses: hashicorp/setup-terraform@v4
         with:
           terraform_wrapper: false
-      - run: make generate
+      - run: go generate ./
       - name: git diff
         run: |
           git diff --compact-summary --exit-code || \
-            (echo; echo "Unexpected difference in directories after code generation. Run 'make generate' command and commit."; exit 1)
+            (echo; echo "Unexpected difference in directories after code generation. Run 'go generate ./...' command and commit."; exit 1)
 
   # Run acceptance tests in a matrix with Terraform CLI versions
   test:
@@ -62,12 +67,11 @@ jobs:
     timeout-minutes: 15
     strategy:
       fail-fast: false
+      max-parallel: 1
       matrix:
         terraform:
+          - "1.16.*"
           - "1.17.*"
-    concurrency:
-      group: acceptance-tests
-      queue: max
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-go@v7
@@ -84,5 +88,5 @@ jobs:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           ANTHROPIC_AUTH_TOKEN: ${{ secrets.ANTHROPIC_AUTH_TOKEN }}
           ANTHROPIC_TEST_USER_ID: ${{ secrets.ANTHROPIC_TEST_USER_ID }}
-        run: go test -v -cover ./internal/provider/
+        run: go tool gotestsum --format github-actions -- -cover ./internal/provider/
         timeout-minutes: 10
