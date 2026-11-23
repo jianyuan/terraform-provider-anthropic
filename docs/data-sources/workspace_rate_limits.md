@@ -5,6 +5,7 @@ subcategory: ""
 description: |-
   List a workspace's rate limits.
   By default, returns only the groups and limiter types that have a workspace-level override. With query.include_inherited = true, returns every group with organization-level limits the workspace can see, listing for each the values it inherits from the organization as well as its own overrides. Each value's source says which it is.
+  Requires an Admin API key: set api_key in the provider block or the ANTHROPIC_API_KEY environment variable. OAuth bearer tokens (auth_token) are not used.
 ---
 
 # anthropic_workspace_rate_limits (Data Source)
@@ -12,6 +13,8 @@ description: |-
 List a workspace's rate limits.
 
 By default, returns only the groups and limiter types that have a workspace-level override. With `query.include_inherited = true`, returns every group with organization-level limits the workspace can see, listing for each the values it inherits from the organization as well as its own overrides. Each value's source says which it is.
+
+Requires an Admin API key: set `api_key` in the provider block or the `ANTHROPIC_API_KEY` environment variable. OAuth bearer tokens (`auth_token`) are not used.
 
 ## Example Usage
 

@@ -4,14 +4,14 @@ page_title: "anthropic_service_account_workspace_member Resource - terraform-pro
 subcategory: ""
 description: |-
   Add a service account to a workspace with the given workspace_role.
-  Requires an OAuth bearer. Admin API keys are not accepted.
+  Requires an OAuth bearer token: set auth_token in the provider block or the ANTHROPIC_AUTH_TOKEN environment variable. Admin API keys (api_key) are not accepted.
 ---
 
 # anthropic_service_account_workspace_member (Resource)
 
 Add a service account to a workspace with the given `workspace_role`.
 
-Requires an OAuth bearer. Admin API keys are not accepted.
+Requires an OAuth bearer token: set `auth_token` in the provider block or the `ANTHROPIC_AUTH_TOKEN` environment variable. Admin API keys (`api_key`) are not accepted.
 
 
 

@@ -28,7 +28,7 @@ var _ datasource.DataSource = &WorkspacesDataSource{}
 var _ datasource.DataSourceWithConfigure = &WorkspacesDataSource{}
 
 func NewWorkspacesDataSource() datasource.DataSource {
-	return &WorkspacesDataSource{}
+	return &WorkspacesDataSource{baseDataSource: baseDataSource{base{requiresApiKey: true}}}
 }
 
 type WorkspacesDataSource struct {

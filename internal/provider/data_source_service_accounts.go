@@ -28,7 +28,7 @@ var _ datasource.DataSource = &ServiceAccountsDataSource{}
 var _ datasource.DataSourceWithConfigure = &ServiceAccountsDataSource{}
 
 func NewServiceAccountsDataSource() datasource.DataSource {
-	return &ServiceAccountsDataSource{}
+	return &ServiceAccountsDataSource{baseDataSource: baseDataSource{base{requiresAuthToken: true}}}
 }
 
 type ServiceAccountsDataSource struct {

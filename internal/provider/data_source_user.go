@@ -33,7 +33,7 @@ var _ datasource.DataSource = &UserDataSource{}
 var _ datasource.DataSourceWithConfigure = &UserDataSource{}
 
 func NewUserDataSource() datasource.DataSource {
-	return &UserDataSource{}
+	return &UserDataSource{baseDataSource: baseDataSource{base{requiresApiKey: true}}}
 }
 
 type UserDataSource struct {
@@ -46,7 +46,7 @@ func (d *UserDataSource) Metadata(ctx context.Context, req datasource.MetadataRe
 
 func (d *UserDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Get a user in the Organization.",
+		MarkdownDescription: "Get a user in the Organization." + requiresApiKeyNote,
 
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{

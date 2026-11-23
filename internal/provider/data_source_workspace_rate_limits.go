@@ -126,7 +126,7 @@ var _ datasource.DataSource = &WorkspaceRateLimitsDataSource{}
 var _ datasource.DataSourceWithConfigure = &WorkspaceRateLimitsDataSource{}
 
 func NewWorkspaceRateLimitsDataSource() datasource.DataSource {
-	return &WorkspaceRateLimitsDataSource{}
+	return &WorkspaceRateLimitsDataSource{baseDataSource: baseDataSource{base{requiresApiKey: true}}}
 }
 
 type WorkspaceRateLimitsDataSource struct {

@@ -52,12 +52,12 @@ func (p *AnthropicProvider) Schema(ctx context.Context, req provider.SchemaReque
 				Optional:            true,
 			},
 			"api_key": schema.StringAttribute{
-				MarkdownDescription: "The Admin API key for authentication. Get this from the [Anthropic console](https://console.anthropic.com/settings/admin-keys). It can be sourced from the `ANTHROPIC_API_KEY` environment variable.",
+				MarkdownDescription: "The Admin API key for authentication. Get this from the [Anthropic console](https://console.anthropic.com/settings/admin-keys). It can be sourced from the `ANTHROPIC_API_KEY` environment variable. Required by every resource and data source except the service account ones (`anthropic_service_account`, `anthropic_service_accounts`, `anthropic_service_account_workspace_member`), which need `auth_token` instead.",
 				Optional:            true,
 				Sensitive:           true,
 			},
 			"auth_token": schema.StringAttribute{
-				MarkdownDescription: "The OAuth bearer token for authentication. Log in with the `ant` CLI under a dedicated profile with the `org:admin` scope (see [Admin access](https://platform.claude.com/docs/en/cli-sdks-libraries/cli/authentication#admin-access)), then export the bearer token It can be sourced from the `ANTHROPIC_AUTH_TOKEN` environment variable.",
+				MarkdownDescription: "The OAuth bearer token for authentication. Log in with the `ant` CLI under a dedicated profile with the `org:admin` scope (see [Admin access](https://platform.claude.com/docs/en/cli-sdks-libraries/cli/authentication#admin-access)), then export the bearer token. It can be sourced from the `ANTHROPIC_AUTH_TOKEN` environment variable. Required only by the service account resources and data sources (`anthropic_service_account`, `anthropic_service_accounts`, `anthropic_service_account_workspace_member`), which do not accept an Admin API key. Set both `api_key` and `auth_token` to manage everything from one provider block.",
 				Optional:            true,
 				Sensitive:           true,
 			},

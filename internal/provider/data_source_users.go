@@ -29,7 +29,7 @@ var _ datasource.DataSource = &UsersDataSource{}
 var _ datasource.DataSourceWithConfigure = &UsersDataSource{}
 
 func NewUsersDataSource() datasource.DataSource {
-	return &UsersDataSource{}
+	return &UsersDataSource{baseDataSource: baseDataSource{base{requiresApiKey: true}}}
 }
 
 type UsersDataSource struct {
@@ -42,7 +42,7 @@ func (d *UsersDataSource) Metadata(ctx context.Context, req datasource.MetadataR
 
 func (d *UsersDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "List all users in the Organization.",
+		MarkdownDescription: "List all users in the Organization." + requiresApiKeyNote,
 
 		Attributes: map[string]schema.Attribute{
 			"users": schema.SetNestedAttribute{

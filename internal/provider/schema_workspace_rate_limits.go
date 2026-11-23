@@ -11,7 +11,7 @@ import (
 func workspaceRateLimitsSchema() superschema.Schema {
 	return superschema.Schema{
 		DataSource: superschema.SchemaDetails{
-			MarkdownDescription: "List a workspace's rate limits.\n\nBy default, returns only the groups and limiter types that have a workspace-level override. With `query.include_inherited = true`, returns every group with organization-level limits the workspace can see, listing for each the values it inherits from the organization as well as its own overrides. Each value's source says which it is.",
+			MarkdownDescription: "List a workspace's rate limits.\n\nBy default, returns only the groups and limiter types that have a workspace-level override. With `query.include_inherited = true`, returns every group with organization-level limits the workspace can see, listing for each the values it inherits from the organization as well as its own overrides. Each value's source says which it is." + requiresApiKeyNote,
 		},
 		Attributes: superschema.Attributes{
 			"workspace_id": superschema.StringAttribute{

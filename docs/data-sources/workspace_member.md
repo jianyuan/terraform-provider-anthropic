@@ -4,11 +4,14 @@ page_title: "anthropic_workspace_member Data Source - terraform-provider-anthrop
 subcategory: ""
 description: |-
   Get information about a Workspace Member.
+  Requires an Admin API key: set api_key in the provider block or the ANTHROPIC_API_KEY environment variable. OAuth bearer tokens (auth_token) are not used.
 ---
 
 # anthropic_workspace_member (Data Source)
 
 Get information about a Workspace Member.
+
+Requires an Admin API key: set `api_key` in the provider block or the `ANTHROPIC_API_KEY` environment variable. OAuth bearer tokens (`auth_token`) are not used.
 
 ## Example Usage
 

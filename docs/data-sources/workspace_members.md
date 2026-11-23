@@ -4,11 +4,14 @@ page_title: "anthropic_workspace_members Data Source - terraform-provider-anthro
 subcategory: ""
 description: |-
   List all members of the workspace.
+  Requires an Admin API key: set api_key in the provider block or the ANTHROPIC_API_KEY environment variable. OAuth bearer tokens (auth_token) are not used.
 ---
 
 # anthropic_workspace_members (Data Source)
 
 List all members of the workspace.
+
+Requires an Admin API key: set `api_key` in the provider block or the `ANTHROPIC_API_KEY` environment variable. OAuth bearer tokens (`auth_token`) are not used.
 
 ## Example Usage
 

@@ -10,7 +10,7 @@ func organizationInvitesSchema() superschema.Schema {
 
 	return superschema.Schema{
 		DataSource: superschema.SchemaDetails{
-			MarkdownDescription: "List all pending invites in the Organization.",
+			MarkdownDescription: "List all pending invites in the Organization." + requiresApiKeyNote,
 		},
 		Attributes: superschema.Attributes{
 			"invites": superschema.SuperSetNestedAttributeOf[OrganizationInviteModel]{

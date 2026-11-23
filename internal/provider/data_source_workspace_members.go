@@ -30,7 +30,7 @@ var _ datasource.DataSource = &WorkspaceMembersDataSource{}
 var _ datasource.DataSourceWithConfigure = &WorkspaceMembersDataSource{}
 
 func NewWorkspaceMembersDataSource() datasource.DataSource {
-	return &WorkspaceMembersDataSource{}
+	return &WorkspaceMembersDataSource{baseDataSource: baseDataSource{base{requiresApiKey: true}}}
 }
 
 type WorkspaceMembersDataSource struct {

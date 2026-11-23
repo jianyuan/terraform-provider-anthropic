@@ -24,7 +24,7 @@ func (m *OrganizationDataSourceModel) FromAPI(ctx context.Context, org anthropic
 }
 
 func NewOrganizationDataSource() datasource.DataSource {
-	return &OrganizationDataSource{}
+	return &OrganizationDataSource{baseDataSource: baseDataSource{base{requiresApiKey: true}}}
 }
 
 var _ datasource.DataSource = &OrganizationDataSource{}
@@ -40,7 +40,7 @@ func (d *OrganizationDataSource) Metadata(ctx context.Context, req datasource.Me
 
 func (d *OrganizationDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Retrieve information about the organization associated with the authenticated API key.",
+		MarkdownDescription: "Retrieve information about the organization associated with the authenticated API key." + requiresApiKeyNote,
 
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{

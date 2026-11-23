@@ -15,7 +15,7 @@ var _ resource.ResourceWithConfigure = &ServiceAccountWorkspaceMemberResource{}
 var _ resource.ResourceWithImportState = &ServiceAccountWorkspaceMemberResource{}
 
 func NewServiceAccountWorkspaceMemberResource() resource.Resource {
-	return &ServiceAccountWorkspaceMemberResource{}
+	return &ServiceAccountWorkspaceMemberResource{baseResource: baseResource{base{requiresAuthToken: true}}}
 }
 
 type ServiceAccountWorkspaceMemberResource struct {

@@ -14,7 +14,7 @@ func workspacesSchema() superschema.Schema {
 
 	return superschema.Schema{
 		DataSource: superschema.SchemaDetails{
-			MarkdownDescription: "List all workspaces in the organization.",
+			MarkdownDescription: "List all workspaces in the organization." + requiresApiKeyNote,
 		},
 		Attributes: superschema.Attributes{
 			"workspaces": superschema.SuperSetNestedAttributeOf[WorkspaceModel]{

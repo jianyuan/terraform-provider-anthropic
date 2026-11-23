@@ -4,14 +4,14 @@ page_title: "anthropic_service_account Resource - terraform-provider-anthropic"
 subcategory: ""
 description: |-
   Manage a Service Account.
-  Requires an OAuth bearer. Admin API keys are not accepted.
+  Requires an OAuth bearer token: set auth_token in the provider block or the ANTHROPIC_AUTH_TOKEN environment variable. Admin API keys (api_key) are not accepted.
 ---
 
 # anthropic_service_account (Resource)
 
 Manage a Service Account.
 
-Requires an OAuth bearer. Admin API keys are not accepted.
+Requires an OAuth bearer token: set `auth_token` in the provider block or the `ANTHROPIC_AUTH_TOKEN` environment variable. Admin API keys (`api_key`) are not accepted.
 
 ## Example Usage
 

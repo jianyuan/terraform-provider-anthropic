@@ -4,11 +4,14 @@ page_title: "anthropic_organization_invites Data Source - terraform-provider-ant
 subcategory: ""
 description: |-
   List all pending invites in the Organization.
+  Requires an Admin API key: set api_key in the provider block or the ANTHROPIC_API_KEY environment variable. OAuth bearer tokens (auth_token) are not used.
 ---
 
 # anthropic_organization_invites (Data Source)
 
 List all pending invites in the Organization.
+
+Requires an Admin API key: set `api_key` in the provider block or the `ANTHROPIC_API_KEY` environment variable. OAuth bearer tokens (`auth_token`) are not used.
 
 ## Example Usage
 

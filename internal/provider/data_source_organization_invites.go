@@ -28,7 +28,7 @@ var _ datasource.DataSource = &OrganizationInvitesDataSource{}
 var _ datasource.DataSourceWithConfigure = &OrganizationInvitesDataSource{}
 
 func NewOrganizationInvitesDataSource() datasource.DataSource {
-	return &OrganizationInvitesDataSource{}
+	return &OrganizationInvitesDataSource{baseDataSource: baseDataSource{base{requiresApiKey: true}}}
 }
 
 type OrganizationInvitesDataSource struct {

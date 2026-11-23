@@ -4,11 +4,14 @@ page_title: "anthropic_service_accounts Data Source - terraform-provider-anthrop
 subcategory: ""
 description: |-
   List all service accounts in the organization.
+  Requires an OAuth bearer token: set auth_token in the provider block or the ANTHROPIC_AUTH_TOKEN environment variable. Admin API keys (api_key) are not accepted.
 ---
 
 # anthropic_service_accounts (Data Source)
 
 List all service accounts in the organization.
+
+Requires an OAuth bearer token: set `auth_token` in the provider block or the `ANTHROPIC_AUTH_TOKEN` environment variable. Admin API keys (`api_key`) are not accepted.
 
 ## Example Usage
 

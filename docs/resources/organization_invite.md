@@ -4,11 +4,14 @@ page_title: "anthropic_organization_invite Resource - terraform-provider-anthrop
 subcategory: ""
 description: |-
   Organization invite resource. Manages invitations to join an organization.
+  Requires an Admin API key: set api_key in the provider block or the ANTHROPIC_API_KEY environment variable. OAuth bearer tokens (auth_token) are not used.
 ---
 
 # anthropic_organization_invite (Resource)
 
 Organization invite resource. Manages invitations to join an organization.
+
+Requires an Admin API key: set `api_key` in the provider block or the `ANTHROPIC_API_KEY` environment variable. OAuth bearer tokens (`auth_token`) are not used.
 
 ## Example Usage
 

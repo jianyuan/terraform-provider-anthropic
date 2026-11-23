@@ -16,7 +16,7 @@ var _ resource.ResourceWithConfigure = &OrganizationInviteResource{}
 var _ resource.ResourceWithImportState = &OrganizationInviteResource{}
 
 func NewOrganizationInviteResource() resource.Resource {
-	return &OrganizationInviteResource{}
+	return &OrganizationInviteResource{baseResource: baseResource{base{requiresApiKey: true}}}
 }
 
 type OrganizationInviteResource struct {

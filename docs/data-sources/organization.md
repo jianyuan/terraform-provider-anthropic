@@ -4,11 +4,14 @@ page_title: "anthropic_organization Data Source - terraform-provider-anthropic"
 subcategory: ""
 description: |-
   Retrieve information about the organization associated with the authenticated API key.
+  Requires an Admin API key: set api_key in the provider block or the ANTHROPIC_API_KEY environment variable. OAuth bearer tokens (auth_token) are not used.
 ---
 
 # anthropic_organization (Data Source)
 
 Retrieve information about the organization associated with the authenticated API key.
+
+Requires an Admin API key: set `api_key` in the provider block or the `ANTHROPIC_API_KEY` environment variable. OAuth bearer tokens (`auth_token`) are not used.
 
 ## Example Usage
 

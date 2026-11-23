@@ -4,11 +4,14 @@ page_title: "anthropic_user Data Source - terraform-provider-anthropic"
 subcategory: ""
 description: |-
   Get a user in the Organization.
+  Requires an Admin API key: set api_key in the provider block or the ANTHROPIC_API_KEY environment variable. OAuth bearer tokens (auth_token) are not used.
 ---
 
 # anthropic_user (Data Source)
 
 Get a user in the Organization.
+
+Requires an Admin API key: set `api_key` in the provider block or the `ANTHROPIC_API_KEY` environment variable. OAuth bearer tokens (`auth_token`) are not used.
 
 ## Example Usage
 

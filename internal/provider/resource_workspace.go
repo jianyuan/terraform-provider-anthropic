@@ -14,7 +14,7 @@ var _ resource.ResourceWithConfigure = &WorkspaceResource{}
 var _ resource.ResourceWithImportState = &WorkspaceResource{}
 
 func NewWorkspaceResource() resource.Resource {
-	return &WorkspaceResource{}
+	return &WorkspaceResource{baseResource: baseResource{base{requiresApiKey: true}}}
 }
 
 type WorkspaceResource struct {

@@ -14,7 +14,7 @@ var _ resource.ResourceWithConfigure = &ServiceAccountResource{}
 var _ resource.ResourceWithImportState = &ServiceAccountResource{}
 
 func NewServiceAccountResource() resource.Resource {
-	return &ServiceAccountResource{}
+	return &ServiceAccountResource{baseResource: baseResource{base{requiresAuthToken: true}}}
 }
 
 type ServiceAccountResource struct {
