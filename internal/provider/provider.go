@@ -45,19 +45,19 @@ func (p *AnthropicProvider) Metadata(ctx context.Context, req provider.MetadataR
 
 func (p *AnthropicProvider) Schema(ctx context.Context, req provider.SchemaRequest, resp *provider.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "The Anthropic provider is used to interact with the Anthropic service.\n\nIf you find this provider useful, please consider supporting me through GitHub Sponsorship or Ko-Fi to help with its development.\n\n[![Github-sponsors](https://img.shields.io/badge/sponsor-30363D?style=for-the-badge&logo=GitHub-Sponsors&logoColor=#EA4AAA)](https://github.com/sponsors/jianyuan)\n[![Ko-Fi](https://img.shields.io/badge/Ko--fi-F16061?style=for-the-badge&logo=ko-fi&logoColor=white)](https://ko-fi.com/L3L71DQEL)",
+		MarkdownDescription: "The Anthropic provider is used to interact with the Anthropic service.\n\n> **Available for consulting.** Need help with Terraform, infrastructure automation or AI agents? Get in touch at [jian.fyi](https://jian.fyi?utm_source=terraform-registry&utm_medium=docs&utm_campaign=terraform-provider-anthropic).\n\nIf you find this provider useful, please consider supporting me through GitHub Sponsorship or Ko-Fi to help with its development.\n\n[![Github-sponsors](https://img.shields.io/badge/sponsor-30363D?style=for-the-badge&logo=GitHub-Sponsors&logoColor=#EA4AAA)](https://github.com/sponsors/jianyuan)\n[![Ko-Fi](https://img.shields.io/badge/Ko--fi-F16061?style=for-the-badge&logo=ko-fi&logoColor=white)](https://ko-fi.com/L3L71DQEL)",
 		Attributes: map[string]schema.Attribute{
 			"base_url": schema.StringAttribute{
 				MarkdownDescription: "API endpoint for the Anthropic service. Defaults to `https://api.anthropic.com`. It can be sourced from the `ANTHROPIC_BASE_URL` environment variable.",
 				Optional:            true,
 			},
 			"api_key": schema.StringAttribute{
-				MarkdownDescription: "The Admin API key for authentication. Get this from the [Anthropic console](https://console.anthropic.com/settings/admin-keys). It can be sourced from the `ANTHROPIC_API_KEY` environment variable.",
+				MarkdownDescription: "The Admin API key for authentication. Get this from the [Anthropic console](https://console.anthropic.com/settings/admin-keys). It can be sourced from the `ANTHROPIC_API_KEY` environment variable. Required by every resource and data source except the service account ones (`anthropic_service_account`, `anthropic_service_accounts`, `anthropic_service_account_workspace_member`), which need `auth_token` instead.",
 				Optional:            true,
 				Sensitive:           true,
 			},
 			"auth_token": schema.StringAttribute{
-				MarkdownDescription: "The OAuth bearer token for authentication. Log in with the `ant` CLI under a dedicated profile with the `org:admin` scope (see [Admin access](https://platform.claude.com/docs/en/cli-sdks-libraries/cli/authentication#admin-access)), then export the bearer token It can be sourced from the `ANTHROPIC_AUTH_TOKEN` environment variable.",
+				MarkdownDescription: "The OAuth bearer token for authentication. See [OAuth bearer token](#oauth-bearer-token) for how to get one with the `ant` CLI. It can be sourced from the `ANTHROPIC_AUTH_TOKEN` environment variable. Required only by the service account resources and data sources (`anthropic_service_account`, `anthropic_service_accounts`, `anthropic_service_account_workspace_member`), which do not accept an Admin API key. Set both `api_key` and `auth_token` to manage everything from one provider block.",
 				Optional:            true,
 				Sensitive:           true,
 			},

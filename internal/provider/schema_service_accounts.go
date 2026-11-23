@@ -14,7 +14,7 @@ func serviceAccountsSchema() superschema.Schema {
 
 	return superschema.Schema{
 		DataSource: superschema.SchemaDetails{
-			MarkdownDescription: "List all service accounts in the organization.",
+			MarkdownDescription: "List all service accounts in the organization." + requiresAuthTokenNote,
 		},
 		Attributes: superschema.Attributes{
 			"service_accounts": superschema.SuperSetNestedAttributeOf[ServiceAccountModel]{

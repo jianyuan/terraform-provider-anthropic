@@ -12,7 +12,7 @@ var _ datasource.DataSource = &WorkspaceDataSource{}
 var _ datasource.DataSourceWithConfigure = &WorkspaceDataSource{}
 
 func NewWorkspaceDataSource() datasource.DataSource {
-	return &WorkspaceDataSource{}
+	return &WorkspaceDataSource{baseDataSource: baseDataSource{base{requiresApiKey: true}}}
 }
 
 type WorkspaceDataSource struct {
@@ -29,6 +29,6 @@ func (d *WorkspaceDataSource) Schema(ctx context.Context, req datasource.SchemaR
 
 func (d *WorkspaceDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
 	fwdatasource.Read(ctx, func(data *WorkspaceModel) (*anthropic.Workspace, error) {
-		return d.apiKeyClient.Organization.Workspaces.Get(ctx, data.Id.ValueString())
+		return d.client.Organization.Workspaces.Get(ctx, data.Id.ValueString())
 	}, req, resp)
 }

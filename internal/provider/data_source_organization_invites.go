@@ -28,7 +28,7 @@ var _ datasource.DataSource = &OrganizationInvitesDataSource{}
 var _ datasource.DataSourceWithConfigure = &OrganizationInvitesDataSource{}
 
 func NewOrganizationInvitesDataSource() datasource.DataSource {
-	return &OrganizationInvitesDataSource{}
+	return &OrganizationInvitesDataSource{baseDataSource: baseDataSource{base{requiresApiKey: true}}}
 }
 
 type OrganizationInvitesDataSource struct {
@@ -45,6 +45,6 @@ func (d *OrganizationInvitesDataSource) Schema(ctx context.Context, req datasour
 
 func (d *OrganizationInvitesDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
 	fwdatasource.List(ctx, func(_ *OrganizationInvitesDataSourceModel) (fwdatasource.AutoPager[anthropic.OrganizationInvite], diag.Diagnostics) {
-		return d.apiKeyClient.Organization.Invites.ListAutoPaging(ctx, anthropic.OrganizationInviteListParams{}), nil
+		return d.client.Organization.Invites.ListAutoPaging(ctx, anthropic.OrganizationInviteListParams{}), nil
 	}, req, resp)
 }

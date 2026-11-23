@@ -8,9 +8,16 @@ import (
 	"github.com/anthropics/anthropic-sdk-go/option"
 )
 
+// Environment variables read by acceptance tests. Pass the ones a test needs to PreCheck.
+const (
+	EnvApiKey    = "ANTHROPIC_API_KEY"
+	EnvAuthToken = "ANTHROPIC_AUTH_TOKEN"
+	EnvUserId    = "ANTHROPIC_TEST_USER_ID"
+)
+
 var (
-	TestApiKey = os.Getenv("ANTHROPIC_API_KEY")
-	TestUserId = os.Getenv("ANTHROPIC_TEST_USER_ID")
+	TestApiKey = os.Getenv(EnvApiKey)
+	TestUserId = os.Getenv(EnvUserId)
 
 	SharedApiKeyClient *anthropic.Client
 )
@@ -22,12 +29,11 @@ func init() {
 	))
 }
 
-func PreCheck(t *testing.T) {
-	if TestApiKey == "" {
-		t.Fatal("ANTHROPIC_API_KEY must be set for acceptance tests")
-	}
-
-	if TestUserId == "" {
-		t.Fatal("ANTHROPIC_TEST_USER_ID must be set for acceptance tests")
+// PreCheck fails the test unless every listed environment variable is set.
+func PreCheck(t *testing.T, envs ...string) {
+	for _, env := range envs {
+		if os.Getenv(env) == "" {
+			t.Fatalf("%s must be set for this acceptance test", env)
+		}
 	}
 }

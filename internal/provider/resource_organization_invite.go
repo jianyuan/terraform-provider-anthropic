@@ -16,7 +16,7 @@ var _ resource.ResourceWithConfigure = &OrganizationInviteResource{}
 var _ resource.ResourceWithImportState = &OrganizationInviteResource{}
 
 func NewOrganizationInviteResource() resource.Resource {
-	return &OrganizationInviteResource{}
+	return &OrganizationInviteResource{baseResource: baseResource{base{requiresApiKey: true}}}
 }
 
 type OrganizationInviteResource struct {
@@ -50,7 +50,7 @@ func (r *OrganizationInviteResource) Create(ctx context.Context, req resource.Cr
 		return
 	}
 
-	invite, err := r.apiKeyClient.Organization.Invites.New(ctx, body)
+	invite, err := r.client.Organization.Invites.New(ctx, body)
 	if err != nil {
 		resp.Diagnostics.Append(fwdiag.NewResourceCreateErrorDiagnostic(err))
 		return
@@ -72,7 +72,7 @@ func (r *OrganizationInviteResource) Read(ctx context.Context, req resource.Read
 		return
 	}
 
-	invite, err := r.apiKeyClient.Organization.Invites.Get(ctx, data.Id.ValueString())
+	invite, err := r.client.Organization.Invites.Get(ctx, data.Id.ValueString())
 	if err != nil {
 		if apiclient.IsNotFoundError(err) {
 			resp.State.RemoveResource(ctx)
@@ -103,7 +103,7 @@ func (r *OrganizationInviteResource) Delete(ctx context.Context, req resource.De
 		return
 	}
 
-	_, err := r.apiKeyClient.Organization.Invites.Delete(ctx, data.Id.ValueString())
+	_, err := r.client.Organization.Invites.Delete(ctx, data.Id.ValueString())
 	if err != nil {
 		if !apiclient.IsNotFoundError(err) {
 			resp.Diagnostics.Append(fwdiag.NewResourceDeleteErrorDiagnostic(err))

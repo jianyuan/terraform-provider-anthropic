@@ -126,7 +126,7 @@ var _ datasource.DataSource = &WorkspaceRateLimitsDataSource{}
 var _ datasource.DataSourceWithConfigure = &WorkspaceRateLimitsDataSource{}
 
 func NewWorkspaceRateLimitsDataSource() datasource.DataSource {
-	return &WorkspaceRateLimitsDataSource{}
+	return &WorkspaceRateLimitsDataSource{baseDataSource: baseDataSource{base{requiresApiKey: true}}}
 }
 
 type WorkspaceRateLimitsDataSource struct {
@@ -148,7 +148,7 @@ func (d *WorkspaceRateLimitsDataSource) Read(ctx context.Context, req datasource
 		if diags.HasError() {
 			return nil, diags
 		}
-		return d.apiKeyClient.Organization.Workspaces.RateLimits.ListAutoPaging(
+		return d.client.Organization.Workspaces.RateLimits.ListAutoPaging(
 			ctx,
 			data.WorkspaceID.ValueString(),
 			*params,

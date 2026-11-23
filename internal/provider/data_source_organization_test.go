@@ -14,7 +14,7 @@ func TestAccOrganizationDataSource(t *testing.T) {
 	rn := "data.anthropic_organization.test"
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { acctest.PreCheck(t) },
+		PreCheck:                 func() { acctest.PreCheck(t, acctest.EnvApiKey) },
 		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{

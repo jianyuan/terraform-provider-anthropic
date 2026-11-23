@@ -29,8 +29,5 @@ func (d *baseDataSource) Configure(ctx context.Context, req datasource.Configure
 		return
 	}
 
-	d.apiKey = providerData.ApiKey
-	d.authToken = providerData.AuthToken
-	d.apiKeyClient = providerData.ApiKeyClient
-	d.authTokenClient = providerData.AuthTokenClient
+	d.configure(providerData, &resp.Diagnostics)
 }

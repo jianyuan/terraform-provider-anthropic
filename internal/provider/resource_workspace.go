@@ -14,7 +14,7 @@ var _ resource.ResourceWithConfigure = &WorkspaceResource{}
 var _ resource.ResourceWithImportState = &WorkspaceResource{}
 
 func NewWorkspaceResource() resource.Resource {
-	return &WorkspaceResource{}
+	return &WorkspaceResource{baseResource: baseResource{base{requiresApiKey: true}}}
 }
 
 type WorkspaceResource struct {
@@ -31,25 +31,25 @@ func (r *WorkspaceResource) Schema(ctx context.Context, req resource.SchemaReque
 
 func (r *WorkspaceResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	fwresource.Create(ctx, func(_ *WorkspaceModel, body *anthropic.OrganizationWorkspaceNewParams) (*anthropic.Workspace, error) {
-		return r.apiKeyClient.Organization.Workspaces.New(ctx, *body)
+		return r.client.Organization.Workspaces.New(ctx, *body)
 	}, req, resp)
 }
 
 func (r *WorkspaceResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	fwresource.Read(ctx, func(data *WorkspaceModel) (*anthropic.Workspace, error) {
-		return r.apiKeyClient.Organization.Workspaces.Get(ctx, data.Id.ValueString())
+		return r.client.Organization.Workspaces.Get(ctx, data.Id.ValueString())
 	}, req, resp)
 }
 
 func (r *WorkspaceResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	fwresource.Update(ctx, func(data *WorkspaceModel, body *anthropic.OrganizationWorkspaceUpdateParams) (*anthropic.Workspace, error) {
-		return r.apiKeyClient.Organization.Workspaces.Update(ctx, data.Id.ValueString(), *body)
+		return r.client.Organization.Workspaces.Update(ctx, data.Id.ValueString(), *body)
 	}, req, resp)
 }
 
 func (r *WorkspaceResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	fwresource.Delete(ctx, func(data *WorkspaceModel) error {
-		_, err := r.apiKeyClient.Organization.Workspaces.Archive(ctx, data.Id.ValueString())
+		_, err := r.client.Organization.Workspaces.Archive(ctx, data.Id.ValueString())
 		return err
 	}, req, resp)
 }

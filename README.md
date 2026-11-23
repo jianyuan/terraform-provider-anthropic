@@ -2,6 +2,8 @@
 
 Unofficial Terraform provider for Anthropic.
 
+> **Available for consulting.** Need help with Terraform, infrastructure automation or AI agents? Get in touch at [jian.fyi](https://jian.fyi?utm_source=github&utm_medium=readme&utm_campaign=terraform-provider-anthropic).
+
 ## Support Development
 
 If you find this provider useful, please consider supporting me through GitHub Sponsorship or Ko-Fi to help with its development.

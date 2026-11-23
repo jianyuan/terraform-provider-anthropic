@@ -12,7 +12,7 @@ import (
 func organizationInviteSchema() superschema.Schema {
 	return superschema.Schema{
 		Resource: superschema.SchemaDetails{
-			MarkdownDescription: "Organization invite resource. Manages invitations to join an organization.",
+			MarkdownDescription: "Organization invite resource. Manages invitations to join an organization." + requiresApiKeyNote,
 		},
 		Attributes: superschema.Attributes{
 			"id": superschema.StringAttribute{

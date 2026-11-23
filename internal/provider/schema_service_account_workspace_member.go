@@ -14,10 +14,10 @@ import (
 func serviceAccountWorkspaceMemberSchema() superschema.Schema {
 	return superschema.Schema{
 		Resource: superschema.SchemaDetails{
-			MarkdownDescription: "Add a service account to a workspace with the given `workspace_role`.\n\nRequires an OAuth bearer. Admin API keys are not accepted.",
+			MarkdownDescription: "Add a service account to a workspace with the given `workspace_role`." + requiresAuthTokenNote,
 		},
 		DataSource: superschema.SchemaDetails{
-			MarkdownDescription: "Retrieve a service account's membership in a workspace.",
+			MarkdownDescription: "Retrieve a service account's membership in a workspace." + requiresAuthTokenNote,
 		},
 		Attributes: superschema.Attributes{
 			"workspace_id": superschema.StringAttribute{

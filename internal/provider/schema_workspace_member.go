@@ -13,10 +13,10 @@ import (
 func workspaceMemberSchema() superschema.Schema {
 	return superschema.Schema{
 		Resource: superschema.SchemaDetails{
-			MarkdownDescription: "Manage a Workspace Member.",
+			MarkdownDescription: "Manage a Workspace Member." + requiresApiKeyNote,
 		},
 		DataSource: superschema.SchemaDetails{
-			MarkdownDescription: "Get information about a Workspace Member.",
+			MarkdownDescription: "Get information about a Workspace Member." + requiresApiKeyNote,
 		},
 		Attributes: superschema.Attributes{
 			"workspace_id": superschema.StringAttribute{

@@ -28,7 +28,7 @@ var _ datasource.DataSource = &WorkspacesDataSource{}
 var _ datasource.DataSourceWithConfigure = &WorkspacesDataSource{}
 
 func NewWorkspacesDataSource() datasource.DataSource {
-	return &WorkspacesDataSource{}
+	return &WorkspacesDataSource{baseDataSource: baseDataSource{base{requiresApiKey: true}}}
 }
 
 type WorkspacesDataSource struct {
@@ -45,6 +45,6 @@ func (d *WorkspacesDataSource) Schema(ctx context.Context, req datasource.Schema
 
 func (d *WorkspacesDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
 	fwdatasource.List(ctx, func(_ *WorkspacesDataSourceModel) (fwdatasource.AutoPager[anthropic.Workspace], diag.Diagnostics) {
-		return d.apiKeyClient.Organization.Workspaces.ListAutoPaging(ctx, anthropic.OrganizationWorkspaceListParams{}), nil
+		return d.client.Organization.Workspaces.ListAutoPaging(ctx, anthropic.OrganizationWorkspaceListParams{}), nil
 	}, req, resp)
 }
