@@ -29,6 +29,6 @@ func (d *ServiceAccountDataSource) Schema(ctx context.Context, req datasource.Sc
 
 func (d *ServiceAccountDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
 	fwdatasource.Read(ctx, func(data *ServiceAccountModel) (*anthropic.ServiceAccount, error) {
-		return d.authTokenClient.Organization.ServiceAccounts.Get(ctx, data.Id.ValueString())
+		return d.client.Organization.ServiceAccounts.Get(ctx, data.Id.ValueString())
 	}, req, resp)
 }

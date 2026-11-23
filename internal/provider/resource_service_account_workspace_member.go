@@ -32,13 +32,13 @@ func (r *ServiceAccountWorkspaceMemberResource) Schema(ctx context.Context, req 
 
 func (r *ServiceAccountWorkspaceMemberResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	fwresource.Create(ctx, func(data *ServiceAccountWorkspaceMemberModel, body *anthropic.OrganizationWorkspaceServiceAccountAddParams) (*anthropic.ServiceAccountWorkspaceMember, error) {
-		return r.authTokenClient.Organization.Workspaces.ServiceAccounts.Add(ctx, data.WorkspaceId.ValueString(), *body)
+		return r.client.Organization.Workspaces.ServiceAccounts.Add(ctx, data.WorkspaceId.ValueString(), *body)
 	}, req, resp)
 }
 
 func (r *ServiceAccountWorkspaceMemberResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	fwresource.Read(ctx, func(data *ServiceAccountWorkspaceMemberModel) (*anthropic.ServiceAccountWorkspaceMember, error) {
-		return r.authTokenClient.Organization.Workspaces.ServiceAccounts.Get(
+		return r.client.Organization.Workspaces.ServiceAccounts.Get(
 			ctx,
 			data.ServiceAccountId.ValueString(),
 			anthropic.OrganizationWorkspaceServiceAccountGetParams{
@@ -50,13 +50,13 @@ func (r *ServiceAccountWorkspaceMemberResource) Read(ctx context.Context, req re
 
 func (r *ServiceAccountWorkspaceMemberResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	fwresource.Update(ctx, func(data *ServiceAccountWorkspaceMemberModel, body *anthropic.OrganizationWorkspaceServiceAccountUpdateParams) (*anthropic.ServiceAccountWorkspaceMember, error) {
-		return r.authTokenClient.Organization.Workspaces.ServiceAccounts.Update(ctx, data.ServiceAccountId.ValueString(), *body)
+		return r.client.Organization.Workspaces.ServiceAccounts.Update(ctx, data.ServiceAccountId.ValueString(), *body)
 	}, req, resp)
 }
 
 func (r *ServiceAccountWorkspaceMemberResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	fwresource.Delete(ctx, func(data *ServiceAccountWorkspaceMemberModel) error {
-		_, err := r.authTokenClient.Organization.Workspaces.ServiceAccounts.Remove(
+		_, err := r.client.Organization.Workspaces.ServiceAccounts.Remove(
 			ctx,
 			data.ServiceAccountId.ValueString(),
 			anthropic.OrganizationWorkspaceServiceAccountRemoveParams{

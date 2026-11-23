@@ -80,6 +80,6 @@ func (d *UsersDataSource) Schema(ctx context.Context, req datasource.SchemaReque
 
 func (d *UsersDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
 	fwdatasource.List(ctx, func(_ *UsersDataSourceModel) (fwdatasource.AutoPager[anthropic.OrganizationUser], diag.Diagnostics) {
-		return d.apiKeyClient.Organization.Users.ListAutoPaging(ctx, anthropic.OrganizationUserListParams{}), nil
+		return d.client.Organization.Users.ListAutoPaging(ctx, anthropic.OrganizationUserListParams{}), nil
 	}, req, resp)
 }

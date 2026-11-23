@@ -31,25 +31,25 @@ func (r *ServiceAccountResource) Schema(ctx context.Context, req resource.Schema
 
 func (r *ServiceAccountResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	fwresource.Create(ctx, func(_ *ServiceAccountModel, body *anthropic.OrganizationServiceAccountNewParams) (*anthropic.ServiceAccount, error) {
-		return r.authTokenClient.Organization.ServiceAccounts.New(ctx, *body)
+		return r.client.Organization.ServiceAccounts.New(ctx, *body)
 	}, req, resp)
 }
 
 func (r *ServiceAccountResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	fwresource.Read(ctx, func(data *ServiceAccountModel) (*anthropic.ServiceAccount, error) {
-		return r.authTokenClient.Organization.ServiceAccounts.Get(ctx, data.Id.ValueString())
+		return r.client.Organization.ServiceAccounts.Get(ctx, data.Id.ValueString())
 	}, req, resp)
 }
 
 func (r *ServiceAccountResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	fwresource.Update(ctx, func(data *ServiceAccountModel, body *anthropic.OrganizationServiceAccountUpdateParams) (*anthropic.ServiceAccount, error) {
-		return r.authTokenClient.Organization.ServiceAccounts.Update(ctx, data.Id.ValueString(), *body)
+		return r.client.Organization.ServiceAccounts.Update(ctx, data.Id.ValueString(), *body)
 	}, req, resp)
 }
 
 func (r *ServiceAccountResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	fwresource.Delete(ctx, func(data *ServiceAccountModel) error {
-		_, err := r.authTokenClient.Organization.ServiceAccounts.Archive(ctx, data.Id.ValueString())
+		_, err := r.client.Organization.ServiceAccounts.Archive(ctx, data.Id.ValueString())
 		return err
 	}, req, resp)
 }

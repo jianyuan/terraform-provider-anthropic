@@ -75,6 +75,6 @@ func (d *UserDataSource) Schema(ctx context.Context, req datasource.SchemaReques
 
 func (d *UserDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
 	fwdatasource.Read(ctx, func(data *UserDataSourceModel) (*anthropic.OrganizationUser, error) {
-		return d.apiKeyClient.Organization.Users.Get(ctx, data.Id.ValueString())
+		return d.client.Organization.Users.Get(ctx, data.Id.ValueString())
 	}, req, resp)
 }

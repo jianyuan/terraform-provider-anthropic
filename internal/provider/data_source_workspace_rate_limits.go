@@ -148,7 +148,7 @@ func (d *WorkspaceRateLimitsDataSource) Read(ctx context.Context, req datasource
 		if diags.HasError() {
 			return nil, diags
 		}
-		return d.apiKeyClient.Organization.Workspaces.RateLimits.ListAutoPaging(
+		return d.client.Organization.Workspaces.RateLimits.ListAutoPaging(
 			ctx,
 			data.WorkspaceID.ValueString(),
 			*params,

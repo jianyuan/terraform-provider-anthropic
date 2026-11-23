@@ -35,7 +35,7 @@ func (r *WorkspaceMemberResource) Schema(ctx context.Context, req resource.Schem
 
 func (r *WorkspaceMemberResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	fwresource.Create(ctx, func(data *WorkspaceMemberModel, body *anthropic.OrganizationWorkspaceMemberAddParams) (*anthropic.WorkspaceMember, error) {
-		return r.apiKeyClient.Organization.Workspaces.Members.Add(ctx, data.WorkspaceId.ValueString(), *body)
+		return r.client.Organization.Workspaces.Members.Add(ctx, data.WorkspaceId.ValueString(), *body)
 	}, req, resp)
 }
 
@@ -48,7 +48,7 @@ func (r *WorkspaceMemberResource) Read(ctx context.Context, req resource.ReadReq
 			retry.Delay(3*time.Second),
 		).Do(func() error {
 			var err error
-			item, err = r.apiKeyClient.Organization.Workspaces.Members.Get(
+			item, err = r.client.Organization.Workspaces.Members.Get(
 				ctx,
 				data.UserId.ValueString(),
 				anthropic.OrganizationWorkspaceMemberGetParams{
@@ -68,13 +68,13 @@ func (r *WorkspaceMemberResource) Read(ctx context.Context, req resource.ReadReq
 
 func (r *WorkspaceMemberResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	fwresource.Update(ctx, func(data *WorkspaceMemberModel, body *anthropic.OrganizationWorkspaceMemberUpdateParams) (*anthropic.WorkspaceMember, error) {
-		return r.apiKeyClient.Organization.Workspaces.Members.Update(ctx, data.UserId.ValueString(), *body)
+		return r.client.Organization.Workspaces.Members.Update(ctx, data.UserId.ValueString(), *body)
 	}, req, resp)
 }
 
 func (r *WorkspaceMemberResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	fwresource.Delete(ctx, func(data *WorkspaceMemberModel) error {
-		_, err := r.apiKeyClient.Organization.Workspaces.Members.Remove(
+		_, err := r.client.Organization.Workspaces.Members.Remove(
 			ctx,
 			data.UserId.ValueString(),
 			anthropic.OrganizationWorkspaceMemberRemoveParams{
