@@ -2,6 +2,7 @@
 page_title: "anthropic Provider"
 description: |-
   The Anthropic provider is used to interact with the Anthropic service.
+  **Available for consulting.** Need help with Terraform, infrastructure automation or AI agents? Get in touch at [jian.fyi](https://jian.fyi?utm_source=terraform-registry&utm_medium=docs&utm_campaign=terraform-provider-anthropic).
   If you find this provider useful, please consider supporting me through GitHub Sponsorship or Ko-Fi to help with its development.
   Github-sponsors https://github.com/sponsors/jianyuan
   Ko-Fi https://ko-fi.com/L3L71DQEL
@@ -10,6 +11,8 @@ description: |-
 # anthropic Provider
 
 The Anthropic provider is used to interact with the Anthropic service.
+
+> **Available for consulting.** Need help with Terraform, infrastructure automation or AI agents? Get in touch at [jian.fyi](https://jian.fyi?utm_source=terraform-registry&utm_medium=docs&utm_campaign=terraform-provider-anthropic).
 
 If you find this provider useful, please consider supporting me through GitHub Sponsorship or Ko-Fi to help with its development.
 
