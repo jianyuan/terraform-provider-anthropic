@@ -1,10 +1,17 @@
 # Each key is a label. It applies when any matcher in its list holds; a matcher
 # holds when all its conditions hold. Labels missing from the repo are skipped.
+breaking-change:
+  - title: '^\w+(\([^)]*\))?!:'
+  - body: '^BREAKING[ -]CHANGE:'
+
 enhancement:
   - title: '^feat(\([^)]*\))?!?:'
 
 bug:
+  # fix(deps): is a dependency update, labeled dependencies only.
   - title: '^fix(\([^)]*\))?!?:'
+    not:
+      title: '^fix\(deps\)!?:'
 
 documentation:
   - title: '^docs(\([^)]*\))?!?:'
@@ -35,5 +42,16 @@ dependencies:
       - '**/Cargo.lock'
       - '**/Gemfile.lock'
       - '**/composer.lock'
+    not:
+      title: *typed
+
+maintenance:
+  - title: '^(build|chore|ci|perf|refactor|revert|style|test)(\([^)]*\))?!?:'
+  - files:
+      - .github/**
+      - .pre-commit-config.yaml
+      - renovate.json
+      - renovate.json5
+      - .gitignore
     not:
       title: *typed
