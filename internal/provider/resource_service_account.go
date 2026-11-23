@@ -3,7 +3,7 @@ package provider
 import (
 	"context"
 
-	"github.com/anthropics/anthropic-sdk-go"
+	"github.com/anthropics/anthropic-sdk-go/v2"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/jianyuan/terraform-provider-anthropic/internal/fwresource"
